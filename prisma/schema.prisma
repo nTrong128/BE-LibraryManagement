@@ -1,0 +1,80 @@
+datasource db {
+    provider = "mongodb"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model Docgia {
+    MaDocGia  String   @id @default(auto()) @map("_id") @db.ObjectId
+    HoLot     String
+    Ten       String
+    NgaySinh  DateTime
+    Phai      String
+    DiaChi    String
+    DienThoai String
+    updateAt  DateTime @updatedAt
+    createAt  DateTime @default(now())
+    deleted   Boolean  @default(false)
+
+    // Relations
+    TheoDoiMuonSach TheoDoiMuonSach[]
+}
+
+model Sach {
+    MaSach     String   @id @default(auto()) @map("_id") @db.ObjectId
+    TenSach    String
+    DonGia     Float
+    SoQuyen    Int
+    NamXuatBan Int
+    MaNXB      String   @db.ObjectId
+    NguonGoc   String // This could represent either the origin or author
+    updateAt   DateTime @updatedAt
+    createAt   DateTime @default(now())
+    deleted    Boolean  @default(false)
+
+    // Relations
+    NhaXuatBan      NhaXuatBan        @relation(fields: [MaNXB], references: [MaNXB])
+    TheoDoiMuonSach TheoDoiMuonSach[]
+}
+
+model NhaXuatBan {
+    MaNXB    String   @id @default(auto()) @map("_id") @db.ObjectId
+    TenNXB   String
+    DiaChi   String
+    updateAt DateTime @updatedAt
+    createAt DateTime @default(now())
+    deleted  Boolean  @default(false)
+
+    // Relations
+    Sach Sach[]
+}
+
+model TheoDoiMuonSach {
+    id       String    @id @default(auto()) @map("_id") @db.ObjectId
+    MaDocGia String    @db.ObjectId
+    MaSach   String    @db.ObjectId
+    NgayMuon DateTime
+    NgayTra  DateTime?
+    updateAt DateTime  @updatedAt
+    createAt DateTime  @default(now())
+    deleted  Boolean   @default(false)
+
+    // Relations
+    Docgia Docgia @relation(fields: [MaDocGia], references: [MaDocGia])
+    Sach   Sach   @relation(fields: [MaSach], references: [MaSach])
+}
+
+model NhanVien {
+    MSNV        String   @id @default(auto()) @map("_id") @db.ObjectId
+    HoTenNV     String
+    Password    String
+    ChucVu      String
+    DiaChi      String
+    SoDienThoai String
+    updateAt    DateTime @updatedAt
+    createAt    DateTime @default(now())
+    deleted     Boolean  @default(false)
+}

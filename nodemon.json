@@ -1,0 +1,6 @@
+{
+  "watch": ["*.ts", "prisma/**/*"],
+  "ext": "ts",
+  "ignore": ["dist/*", "node_modules/*"],
+  "exec": "ts-node app.ts"
+}
