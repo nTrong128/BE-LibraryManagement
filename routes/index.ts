@@ -1,9 +1,20 @@
 import {Router} from "express";
-import {createItem, getItems} from "../controllers/itemController";
+import {
+  createNhanVien,
+  getNhanVienById,
+  updateNhanVien,
+  deleteNhanVien,
+  getAllNhanVien,
+} from "../controllers/NhanVien.controller";
+import {validate} from "../middlewares/validate";
+import {NhanVienSchema} from "../schemas/NhanVien";
 
 const router = Router();
 
-router.get("/items", getItems);
-router.post("/items", createItem);
+router.get("/nhanvien", getAllNhanVien);
+router.get("/nhanvien/:id", getNhanVienById);
+router.post("/nhanvien", validate(NhanVienSchema), createNhanVien);
+router.put("/nhanvien/:id", updateNhanVien);
+router.delete("/nhanvien/:id", deleteNhanVien);
 
 export {router};
