@@ -7,7 +7,7 @@ import {
   getAllNhanVien,
 } from "../controllers/NhanVien.controller";
 import {validate} from "../middlewares/validate";
-import {NhanVienSchema} from "../schemas/NhanVien";
+import {NhanVienSchema} from "../schemas/nhanvien";
 
 const router = Router();
 
