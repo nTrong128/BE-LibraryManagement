@@ -1,17 +1,14 @@
 import type {Request, Response, NextFunction} from "express";
 import * as nhanVienService from "../services/NhanVien.Service";
 import {NhanVien} from "@prisma/client";
+import {isValidObjectId} from "../utils/validObject";
+import {sendResponse} from "../utils/response";
 
 // Get all NhanVien
 export const getAllNhanVien = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const allNhanVien: NhanVien[] = await nhanVienService.getAllNhanVien();
-    res.status(200).json({
-      status: "success",
-      statusCode: 200,
-      message: "Retrieved all NhanVien",
-      data: allNhanVien,
-    });
+    return sendResponse(res, 200, "Retrieved all NhanVien", allNhanVien);
   } catch (error) {
     next(error);
   }
@@ -19,16 +16,19 @@ export const getAllNhanVien = async (req: Request, res: Response, next: NextFunc
 
 // Get NhanVien by ID
 export const getNhanVienById = async (req: Request, res: Response, next: NextFunction) => {
+  const {id} = req.params;
+  if (!isValidObjectId(id)) {
+    return sendResponse(res, 400, "Invalid NhanVien ID");
+  }
   try {
-    const {id} = req.params;
     const nhanVien: NhanVien | null = await nhanVienService.getNhanVienById(id);
 
     if (!nhanVien) {
-      return res.status(404).json({message: "NhanVien not found"});
+      return sendResponse(res, 404, "NhanVien not found");
     }
-
-    res.status(200).json(nhanVien);
+    sendResponse(res, 200, "Retrieved NhanVien", nhanVien);
   } catch (error) {
+    console.error("Error fetching NhanVien:", error);
     next(error);
   }
 };
@@ -38,31 +38,56 @@ export const createNhanVien = async (req: Request, res: Response, next: NextFunc
   try {
     const nhanVienData: Omit<NhanVien, "MSNV" | "createAt" | "updateAt" | "deleted"> = req.body;
     const newNhanVien: NhanVien = await nhanVienService.createNhanVien(nhanVienData);
-    res.status(201).json(newNhanVien);
+    return sendResponse(res, 201, "NhanVien created", newNhanVien);
   } catch (error) {
     next(error);
   }
 };
 
+import {Prisma} from "@prisma/client";
+
 // Update NhanVien by ID
 export const updateNhanVien = async (req: Request, res: Response, next: NextFunction) => {
+  const {id} = req.params;
+  if (!isValidObjectId(id)) {
+    return sendResponse(res, 400, "Invalid NhanVien ID");
+  }
+
   try {
-    const {id} = req.params;
     const nhanVienData: Partial<NhanVien> = req.body;
-    const updatedNhanVien: NhanVien = await nhanVienService.updateNhanVienById(id, nhanVienData);
-    res.status(200).json(updatedNhanVien);
+    const updatedNhanVien: NhanVien | null = await nhanVienService.updateNhanVienById(
+      id,
+      nhanVienData
+    );
+
+    return sendResponse(res, 200, "NhanVien updated", updatedNhanVien);
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      return sendResponse(res, 404, "NhanVien not found");
+    }
     next(error);
   }
 };
 
 // Soft delete NhanVien by ID
 export const deleteNhanVien = async (req: Request, res: Response, next: NextFunction) => {
+  const {id} = req.params;
+  if (!isValidObjectId(id)) {
+    return sendResponse(res, 400, "Invalid NhanVien ID");
+  }
+
   try {
-    const {id} = req.params;
-    await nhanVienService.softDeleteNhanVienById(id);
-    res.status(204).send(); // No content
+    const result = await nhanVienService.softDeleteNhanVienById(id);
+
+    if (!result) {
+      return sendResponse(res, 404, "NhanVien not found");
+    }
+
+    return sendResponse(res, 200, "NhanVien deleted");
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      return sendResponse(res, 404, "NhanVien not found");
+    }
     next(error);
   }
 };
