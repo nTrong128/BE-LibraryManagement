@@ -1,5 +1,5 @@
 import type {Request, Response, NextFunction} from "express";
-import * as nhanVienService from "../services/NhanVien.Service";
+import * as nhanVienService from "../services/NhanVien.service";
 import {NhanVien} from "@prisma/client";
 import {isValidObjectId} from "../utils/validObject";
 import {sendResponse} from "../utils/response";

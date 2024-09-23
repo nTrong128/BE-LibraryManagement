@@ -1,6 +1,7 @@
 import prisma from "../config/prisma";
 import {NhaXuatBan} from "@prisma/client";
 
+// Find all NhaXuatBan
 export const getAllNhaXuatBan = async (): Promise<NhaXuatBan[]> => {
   return prisma.nhaXuatBan.findMany();
 };

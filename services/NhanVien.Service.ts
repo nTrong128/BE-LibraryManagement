@@ -1,6 +1,7 @@
 import prisma from "../config/prisma";
 import {NhanVien} from "@prisma/client";
 
+// Find all NhanVien
 export const getAllNhanVien = async (): Promise<NhanVien[]> => {
   return prisma.nhanVien.findMany();
 };
