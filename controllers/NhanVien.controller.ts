@@ -3,6 +3,7 @@ import * as nhanVienService from "../services/NhanVien.Service";
 import {NhanVien} from "@prisma/client";
 import {isValidObjectId} from "../utils/validObject";
 import {sendResponse} from "../utils/response";
+import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
 
 // Get all NhanVien
 export const getAllNhanVien = async (req: Request, res: Response, next: NextFunction) => {
@@ -44,8 +45,6 @@ export const createNhanVien = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-import {Prisma} from "@prisma/client";
-
 // Update NhanVien by ID
 export const updateNhanVien = async (req: Request, res: Response, next: NextFunction) => {
   const {id} = req.params;
@@ -62,7 +61,7 @@ export const updateNhanVien = async (req: Request, res: Response, next: NextFunc
 
     return sendResponse(res, 200, "NhanVien updated", updatedNhanVien);
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+    if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
       return sendResponse(res, 404, "NhanVien not found");
     }
     next(error);
@@ -85,7 +84,7 @@ export const deleteNhanVien = async (req: Request, res: Response, next: NextFunc
 
     return sendResponse(res, 200, "NhanVien deleted");
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+    if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
       return sendResponse(res, 404, "NhanVien not found");
     }
     next(error);
