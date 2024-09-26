@@ -12,7 +12,7 @@ model Docgia {
     HoLot     String
     Ten       String
     NgaySinh  DateTime
-    Phai      String
+    Phai      Boolean
     DiaChi    String
     DienThoai String
     updateAt  DateTime @updatedAt
@@ -53,8 +53,7 @@ model NhaXuatBan {
 }
 
 model TheoDoiMuonSach {
-    id       String    @id @default(auto()) @map("_id") @db.ObjectId
-    MaDocGia String    @db.ObjectId
+    MaDocGia String    @id @default(auto()) @map("_id") @db.ObjectId
     MaSach   String    @db.ObjectId
     NgayMuon DateTime
     NgayTra  DateTime?

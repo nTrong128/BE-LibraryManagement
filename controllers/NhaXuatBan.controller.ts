@@ -82,7 +82,7 @@ export const deleteNhaXuatBan = async (req: Request, res: Response, next: NextFu
       return sendResponse(res, 404, "NhaXuatBan not found");
     }
 
-    return sendResponse(res, 200, "NhaXuatBan deleted");
+    return sendResponse(res, 204);
   } catch (error) {
     if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
       return sendResponse(res, 404, "NhaXuatBan not found");

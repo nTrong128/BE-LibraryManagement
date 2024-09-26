@@ -1,6 +1,7 @@
 import {z} from "zod";
 
 export const NhanVienSchema = z.object({
+  MSNV: z.string().optional(),
   HoTenNV: z
     .string()
     .min(1, {message: "Họ tên không được để trống"})
