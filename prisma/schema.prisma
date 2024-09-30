@@ -20,7 +20,7 @@ model Docgia {
     deleted   Boolean  @default(false)
 
     // Relations
-    TheoDoiMuonSach TheoDoiMuonSach[]
+    MuonSach MuonSach[]
 }
 
 model Sach {
@@ -36,8 +36,8 @@ model Sach {
     deleted    Boolean  @default(false)
 
     // Relations
-    NhaXuatBan      NhaXuatBan        @relation(fields: [MaNXB], references: [MaNXB])
-    TheoDoiMuonSach TheoDoiMuonSach[]
+    NhaXuatBan NhaXuatBan @relation(fields: [MaNXB], references: [MaNXB])
+    MuonSach   MuonSach[]
 }
 
 model NhaXuatBan {
@@ -52,11 +52,11 @@ model NhaXuatBan {
     Sach Sach[]
 }
 
-model TheoDoiMuonSach {
+model MuonSach {
     MaMuon   String    @id @default(auto()) @map("_id") @db.ObjectId
     MaDocGia String    @db.ObjectId
     MaSach   String    @db.ObjectId
-    NgayMuon DateTime
+    NgayMuon DateTime?
     NgayTra  DateTime?
     updateAt DateTime  @updatedAt
     createAt DateTime  @default(now())

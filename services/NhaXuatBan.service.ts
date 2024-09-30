@@ -22,7 +22,7 @@ export const getNhaXuatBanById = async (id: string): Promise<NhaXuatBan | null> 
 
 // Create a new NhaXuatBan
 export const createNhaXuatBan = async (
-  data: Omit<NhaXuatBan, "MSNV" | "createAt" | "updateAt" | "deleted">
+  data: Omit<NhaXuatBan, "MaNXB" | "createAt" | "updateAt" | "deleted">
 ): Promise<NhaXuatBan> => {
   return prisma.nhaXuatBan.create({
     data,
