@@ -3,13 +3,20 @@ import {NhanVien} from "@prisma/client";
 
 // Find all NhanVien
 export const getAllNhanVien = async (): Promise<NhanVien[]> => {
-  return prisma.nhanVien.findMany();
+  return prisma.nhanVien.findMany({
+    where: {
+      deleted: false,
+    },
+  });
 };
 
 // Find NhanVien by ID
 export const getNhanVienById = async (id: string): Promise<NhanVien | null> => {
   return prisma.nhanVien.findUnique({
-    where: {MSNV: id},
+    where: {
+      MSNV: id,
+      deleted: false,
+    },
   });
 };
 

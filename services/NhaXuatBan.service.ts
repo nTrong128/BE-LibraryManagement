@@ -3,13 +3,20 @@ import {NhaXuatBan} from "@prisma/client";
 
 // Find all NhaXuatBan
 export const getAllNhaXuatBan = async (): Promise<NhaXuatBan[]> => {
-  return prisma.nhaXuatBan.findMany();
+  return prisma.nhaXuatBan.findMany({
+    where: {
+      deleted: false,
+    },
+  });
 };
 
 // Find NhaXuatBan by ID
 export const getNhaXuatBanById = async (id: string): Promise<NhaXuatBan | null> => {
   return prisma.nhaXuatBan.findUnique({
-    where: {MaNXB: id},
+    where: {
+      MaNXB: id,
+      deleted: false,
+    },
   });
 };
 

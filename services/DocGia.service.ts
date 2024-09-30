@@ -3,13 +3,20 @@ import {Docgia} from "@prisma/client";
 
 // Find all Docgia
 export const getAllDocgia = async (): Promise<Docgia[]> => {
-  return prisma.docgia.findMany();
+  return prisma.docgia.findMany({
+    where: {
+      deleted: false,
+    },
+  });
 };
 
 // Find Docgia by ID
 export const getDocgiaById = async (id: string): Promise<Docgia | null> => {
   return prisma.docgia.findUnique({
-    where: {MaDocGia: id},
+    where: {
+      MaDocGia: id,
+      deleted: false,
+    },
   });
 };
 

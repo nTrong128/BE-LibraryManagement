@@ -7,7 +7,7 @@ export const DocGiaSchema = z.object({
   DiaChi: z.string().min(1, {message: "Địa chỉ không được để trống"}),
   DienThoai: z.string().regex(/^0\d{9,10}$/),
   Phai: z.boolean(),
-  NgaySinh: z.date(),
+  NgaySinh: z.coerce.date(),
 });
 
 export type DocGia = z.infer<typeof DocGiaSchema>;
