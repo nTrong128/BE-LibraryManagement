@@ -53,7 +53,8 @@ model NhaXuatBan {
 }
 
 model TheoDoiMuonSach {
-    MaDocGia String    @id @default(auto()) @map("_id") @db.ObjectId
+    MaMuon   String    @id @default(auto()) @map("_id") @db.ObjectId
+    MaDocGia String    @db.ObjectId
     MaSach   String    @db.ObjectId
     NgayMuon DateTime
     NgayTra  DateTime?

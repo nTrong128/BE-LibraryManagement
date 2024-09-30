@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nodemon",
     "start": "node dist/app.js",
+    "prisma-update": "npx prisma generate && npx prisma db push",
     "build": "tsc"
   },
   "keywords": [],
