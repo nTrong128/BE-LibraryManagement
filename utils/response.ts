@@ -1,8 +1,13 @@
 import type {Response} from "express";
 
-export const sendResponse = (res: Response, statusCode: number, message?: string, data?: any) => {
+export const sendResponse = (
+  res: Response,
+  statusCode: number,
+  message?: string,
+  data?: any,
+  meta?: any // New meta argument
+) => {
   if (statusCode === 204) {
-    // No Content response should not send a body
     return res.status(204).send();
   }
 
@@ -11,5 +16,6 @@ export const sendResponse = (res: Response, statusCode: number, message?: string
     statusCode,
     message,
     ...(data && {data}), // Include data only if it exists
+    ...(meta && {meta}), // Include meta only if it exists
   });
 };

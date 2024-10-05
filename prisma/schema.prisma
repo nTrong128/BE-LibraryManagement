@@ -26,7 +26,7 @@ model Docgia {
 model Sach {
     MaSach     String   @id @default(auto()) @map("_id") @db.ObjectId
     TenSach    String
-    DonGia     Float?
+    DonGia     Float
     SoQuyen    Int
     NamXuatBan Int
     MaNXB      String   @db.ObjectId
@@ -53,18 +53,26 @@ model NhaXuatBan {
 }
 
 model MuonSach {
-    MaMuon   String    @id @default(auto()) @map("_id") @db.ObjectId
-    MaDocGia String    @db.ObjectId
-    MaSach   String    @db.ObjectId
+    MaMuon   String       @id @default(auto()) @map("_id") @db.ObjectId
+    MaDocGia String       @db.ObjectId
+    MaSach   String       @db.ObjectId
     NgayMuon DateTime?
     NgayTra  DateTime?
-    updateAt DateTime  @updatedAt
-    createAt DateTime  @default(now())
-    deleted  Boolean   @default(false)
+    status   BorrowStatus @default(PENDING)
+    updateAt DateTime     @updatedAt
+    createAt DateTime     @default(now())
+    deleted  Boolean      @default(false)
 
     // Relations
     Docgia Docgia @relation(fields: [MaDocGia], references: [MaDocGia])
     Sach   Sach   @relation(fields: [MaSach], references: [MaSach])
+}
+
+enum BorrowStatus {
+    PENDING // Request is created but not yet accepted
+    ACCEPTED // Request has been accepted by the librarian
+    BORROWED // Book is currently borrowed by the user
+    RETURNED // Book has been returned
 }
 
 model NhanVien {

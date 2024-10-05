@@ -2,12 +2,28 @@ import prisma from "../config/prisma";
 import {Sach} from "@prisma/client";
 
 // Find all Sach
-export const getAllSach = async (): Promise<Sach[]> => {
-  return prisma.sach.findMany({
+export const getAllSach = async (
+  page: number,
+  pageSize: number,
+  sortBy: string,
+  sortOrder: "asc" | "desc"
+) => {
+  const skip = (page - 1) * pageSize;
+  const orderBy = {
+    [sortBy]: sortOrder,
+  };
+
+  const sachList = await prisma.sach.findMany({
+    skip,
+    take: pageSize,
+    orderBy,
     where: {
       deleted: false,
     },
   });
+  const totalItems = await prisma.sach.count();
+
+  return {sachList, totalItems};
 };
 
 // Find Sach by ID
@@ -22,7 +38,7 @@ export const getSachById = async (id: string): Promise<Sach | null> => {
 
 // Create a new Sach
 export const createSach = async (
-  data: Omit<Sach, "MaSach" | "DonGia" | "createAt" | "updateAt" | "deleted">
+  data: Omit<Sach, "MaSach" | "createAt" | "updateAt" | "deleted">
 ): Promise<Sach> => {
   return prisma.sach.create({
     data,

@@ -7,9 +7,28 @@ import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
 
 // Get all Sach
 export const getAllSach = async (req: Request, res: Response, next: NextFunction) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const pageSize = parseInt(req.query.pageSize as string) || 5;
+  const sortBy = (req.query.sortBy as string) || "MaSach"; // Default sort field
+  const sortOrder = (req.query.sortOrder as "asc" | "desc") || "asc"; // Default sort order
+
   try {
-    const allSach: Sach[] = await SachService.getAllSach();
-    return sendResponse(res, 200, "Retrieved all Sach", allSach);
+    const {sachList, totalItems} = await SachService.getAllSach(page, pageSize, sortBy, sortOrder);
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalItems / pageSize);
+
+    // Prepare meta data
+    const meta = {
+      totalItems,
+      totalPages,
+      currentPage: page,
+      pageSize,
+      sortBy,
+      sortOrder,
+    };
+
+    return sendResponse(res, 200, "Retrieved all Sach", sachList, meta);
   } catch (error) {
     next(error);
   }
@@ -37,8 +56,12 @@ export const getSachById = async (req: Request, res: Response, next: NextFunctio
 // Create new Sach
 export const createSach = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const SachData: Omit<Sach, "MaSach" | "DonGia" | "createAt" | "updateAt" | "deleted"> =
-      req.body;
+    const SachData: Omit<Sach, "MaSach" | "createAt" | "updateAt" | "deleted"> = req.body;
+
+    if (!isValidObjectId(SachData.MaNXB)) {
+      return sendResponse(res, 400, "Invalid NhaXuatBan ID");
+    }
+
     const newSach: Sach = await SachService.createSach(SachData);
     return sendResponse(res, 201, "Sach created", newSach);
   } catch (error) {

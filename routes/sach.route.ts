@@ -5,7 +5,7 @@ import {
   getAllSach,
   getSachById,
   updateSach,
-} from "../controllers/sach.controller";
+} from "../controllers/Sach.controller";
 import {validate} from "../middlewares/validate";
 import {SachSchema} from "../schemas/sach";
 
