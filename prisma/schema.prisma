@@ -7,24 +7,6 @@ generator client {
     provider = "prisma-client-js"
 }
 
-model Docgia {
-    MaDocGia  String   @id @default(auto()) @map("_id") @db.ObjectId
-    HoLot     String
-    Ten       String
-    NgaySinh  DateTime
-    Phai      Gender
-    DiaChi    String
-    DienThoai String
-    updateAt  DateTime @updatedAt
-    createAt  DateTime @default(now())
-    deleted   Boolean  @default(false)
-
-    // Relations
-    MuonSach MuonSach[]
-
-    TaiKhoan TaiKhoan[]
-}
-
 model Sach {
     MaSach     String   @id @default(auto()) @map("_id") @db.ObjectId
     TenSach    String
@@ -76,7 +58,6 @@ model MuonSach {
 model NhanVien {
     MSNV        String   @id @default(auto()) @map("_id") @db.ObjectId
     HoTenNV     String
-    Password    String
     ChucVu      String
     DiaChi      String
     SoDienThoai String
@@ -90,16 +71,42 @@ model NhanVien {
 }
 
 model TaiKhoan {
-    id         String    @id @default(auto()) @map("_id") @db.ObjectId
-    username   String    @unique
-    password   String
-    role       Role      @default(DOCGIA)
-    nhanVien   NhanVien? @relation(fields: [nhanVienId], references: [MSNV])
-    nhanVienId String?   @db.ObjectId
-    docGia     Docgia?   @relation(fields: [docGiaId], references: [MaDocGia])
-    docGiaId   String?   @db.ObjectId
-    createAt   DateTime  @default(now())
-    updateAt   DateTime  @updatedAt
+    id       String @id @default(auto()) @map("_id") @db.ObjectId
+    username String @unique
+    password String
+    email    String @unique
+    role     Role   @default(DOCGIA)
+
+    nhanVienId String? @db.ObjectId
+    docGiaId   String? @db.ObjectId
+
+    resetPasswordToken     String?
+    resetPasswordExpiresAt DateTime?
+
+    deleted  Boolean  @default(false)
+    createAt DateTime @default(now())
+    updateAt DateTime @updatedAt
+
+    nhanVien NhanVien? @relation(fields: [nhanVienId], references: [MSNV])
+    docGia   Docgia?   @relation(fields: [docGiaId], references: [MaDocGia])
+}
+
+model Docgia {
+    MaDocGia  String    @id @default(auto()) @map("_id") @db.ObjectId
+    HoLot     String
+    Ten       String
+    NgaySinh  DateTime?
+    Phai      Gender?
+    DiaChi    String?
+    DienThoai String?
+    updateAt  DateTime  @updatedAt
+    createAt  DateTime  @default(now())
+    deleted   Boolean   @default(false)
+
+    // Relations
+    MuonSach MuonSach[]
+
+    TaiKhoan TaiKhoan[]
 }
 
 enum Role {

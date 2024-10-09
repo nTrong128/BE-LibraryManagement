@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import morgan from "morgan";
 import {errorHandler} from "./middlewares/errorHandler";
-
+import cookieParser from "cookie-parser";
 import {router} from "./routes";
 
 dotenv.config();
@@ -14,6 +14,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 app.use(morgan("dev"));
 
 // Routes
