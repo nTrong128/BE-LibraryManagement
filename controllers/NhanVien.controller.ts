@@ -4,12 +4,56 @@ import {NhanVien} from "@prisma/client";
 import {isValidObjectId} from "../utils/validObject";
 import {sendResponse} from "../utils/response";
 import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
-
+import {createQuerySchema} from "../schemas/query";
+import {z} from "zod";
 // Get all NhanVien
 export const getAllNhanVien = async (req: Request, res: Response, next: NextFunction) => {
+  const nhanVienFields = z.enum([
+    "MSNV",
+    "HoTenNV",
+    "ChucVu",
+    "DiaChi",
+    "SoDienThoai",
+    "createAt",
+    "updateAt",
+    "deleted",
+  ]);
+
+  const nhanVienQuerySchema = createQuerySchema(nhanVienFields.options);
+  const {success, data, error} = nhanVienQuerySchema.safeParse(req.query);
+
+  if (!success) {
+    return sendResponse(
+      res,
+      400,
+      "Invalid query string",
+      error.issues.map((issue) => issue.message)
+    );
+  }
+  const {page, pageSize, sortBy, sortOrder, search} = data;
   try {
-    const allNhanVien: NhanVien[] = await nhanVienService.getAllNhanVien();
-    return sendResponse(res, 200, "Retrieved all NhanVien", allNhanVien);
+    const {itemList, totalItems} = await nhanVienService.getAllNhanVien(
+      pageSize,
+      page,
+      sortBy,
+      sortOrder
+    );
+
+    if (page) {
+      const totalPages = Math.ceil(totalItems / pageSize);
+      const meta = {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        pageSize,
+        sortBy,
+        sortOrder,
+      };
+
+      return sendResponse(res, 200, `Retrieved paginated NhanVien at page ${page}`, itemList, meta);
+    } else {
+      return sendResponse(res, 200, "Retrieved all NhanVien", itemList);
+    }
   } catch (error) {
     next(error);
   }

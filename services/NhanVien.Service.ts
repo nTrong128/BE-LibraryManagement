@@ -2,12 +2,38 @@ import prisma from "../config/prisma";
 import {NhanVien} from "@prisma/client";
 
 // Find all NhanVien
-export const getAllNhanVien = async (): Promise<NhanVien[]> => {
-  return prisma.nhanVien.findMany({
-    where: {
-      deleted: false,
-    },
-  });
+export const getAllNhanVien = async (
+  pageSize: number,
+  page?: number | null,
+  sortBy: string = "MSNV",
+  sortOrder: "asc" | "desc" = "asc"
+) => {
+  let itemList;
+  let totalItems;
+
+  if (page) {
+    const skip = (page - 1) * pageSize;
+
+    itemList = await prisma.nhanVien.findMany({
+      skip,
+      take: pageSize,
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+    });
+
+    totalItems = await prisma.nhanVien.count();
+  } else {
+    itemList = await prisma.nhanVien.findMany({
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+    });
+
+    totalItems = itemList.length;
+  }
+
+  return {itemList, totalItems};
 };
 
 // Find NhanVien by ID
