@@ -4,36 +4,59 @@ import {Sach} from "@prisma/client";
 import {isValidObjectId} from "../utils/validObject";
 import {sendResponse} from "../utils/response";
 import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
+import {createQuerySchema} from "../schemas/query";
+import {z} from "zod";
 
 // Get all Sach
 export const getAllSach = async (req: Request, res: Response, next: NextFunction) => {
-  const page = parseInt(req.query.page as string) || 1;
-  const pageSize = parseInt(req.query.pageSize as string) || 5;
-  const sortBy = (req.query.sortBy as string) || "MaSach"; // Default sort field
-  const sortOrder = (req.query.sortOrder as "asc" | "desc") || "asc"; // Default sort order
+  const sachFields = z.enum([
+    "MaSach",
+    "TenSach",
+    "DonGia",
+    "SoQuyen",
+    "NamXuatBan",
+    "MaNXB",
+    "NguonGoc",
+    "updateAt",
+    "createAt",
+    "deleted",
+  ]);
 
+  const sachQuerySchema = createQuerySchema(sachFields.options);
+  const {success, data, error} = sachQuerySchema.safeParse(req.query);
+
+  if (!success) {
+    return sendResponse(
+      res,
+      400,
+      "Invalid query string",
+      error.issues.map((issue) => issue.message)
+    );
+  }
+
+  const {page, pageSize, sortBy, sortOrder} = data;
   try {
-    const {sachList, totalItems} = await SachService.getAllSach(page, pageSize, sortBy, sortOrder);
+    const {itemList, totalItems} = await SachService.getAllSach(pageSize, page, sortBy, sortOrder);
 
-    // Calculate total pages
-    const totalPages = Math.ceil(totalItems / pageSize);
+    if (page) {
+      const totalPages = Math.ceil(totalItems / pageSize);
+      const meta = {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        pageSize,
+        sortBy,
+        sortOrder,
+      };
 
-    // Prepare meta data
-    const meta = {
-      totalItems,
-      totalPages,
-      currentPage: page,
-      pageSize,
-      sortBy,
-      sortOrder,
-    };
-
-    return sendResponse(res, 200, "Retrieved all Sach", sachList, meta);
+      return sendResponse(res, 200, `Retrieved Sach at page ${page}`, itemList, meta);
+    } else {
+      return sendResponse(res, 200, "Retrieved all Sach", itemList);
+    }
   } catch (error) {
     next(error);
   }
 };
-
 // Get Sach by ID
 export const getSachById = async (req: Request, res: Response, next: NextFunction) => {
   const {id} = req.params;

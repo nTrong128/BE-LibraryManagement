@@ -3,27 +3,37 @@ import {Sach} from "@prisma/client";
 
 // Find all Sach
 export const getAllSach = async (
-  page: number,
   pageSize: number,
-  sortBy: string,
-  sortOrder: "asc" | "desc"
+  page?: number | null,
+  sortBy: string = "MaSach",
+  sortOrder: "asc" | "desc" = "asc"
 ) => {
-  const skip = (page - 1) * pageSize;
-  const orderBy = {
-    [sortBy]: sortOrder,
-  };
+  let itemList;
+  let totalItems;
 
-  const sachList = await prisma.sach.findMany({
-    skip,
-    take: pageSize,
-    orderBy,
-    where: {
-      deleted: false,
-    },
-  });
-  const totalItems = await prisma.sach.count();
+  if (page) {
+    const skip = (page - 1) * pageSize;
 
-  return {sachList, totalItems};
+    itemList = await prisma.sach.findMany({
+      skip,
+      take: pageSize,
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+    });
+
+    totalItems = await prisma.sach.count();
+  } else {
+    itemList = await prisma.sach.findMany({
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+    });
+
+    totalItems = itemList.length;
+  }
+
+  return {itemList, totalItems};
 };
 
 // Find Sach by ID
