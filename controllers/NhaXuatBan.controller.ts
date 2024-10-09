@@ -7,9 +7,40 @@ import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
 
 // Get all NhaXuatBan
 export const getAllNhaXuatBan = async (req: Request, res: Response, next: NextFunction) => {
+  const page = req.query.page ? parseInt(req.query.page as string) : null;
+  const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string) : 5;
+  const sortBy = (req.query.sortBy as string) || "MaNXB";
+  const sortOrder = (req.query.sortOrder as "asc" | "desc") || "asc";
+
   try {
-    const allNhaXuatBan: NhaXuatBan[] = await NhaXuatBanService.getAllNhaXuatBan();
-    return sendResponse(res, 200, "Retrieved all NhaXuatBan", allNhaXuatBan);
+    const {itemList, totalItems} = await NhaXuatBanService.getAllNhaXuatBan(
+      pageSize,
+      page,
+      sortBy,
+      sortOrder
+    );
+
+    if (page) {
+      const totalPages = Math.ceil(totalItems / pageSize);
+      const meta = {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        pageSize,
+        sortBy,
+        sortOrder,
+      };
+
+      return sendResponse(
+        res,
+        200,
+        `Retrieved paginated NhaXuatBan at page ${page}`,
+        itemList,
+        meta
+      );
+    } else {
+      return sendResponse(res, 200, "Retrieved all NhaXuatBan", itemList);
+    }
   } catch (error) {
     next(error);
   }

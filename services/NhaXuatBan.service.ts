@@ -1,13 +1,39 @@
 import prisma from "../config/prisma";
-import {NhaXuatBan} from "@prisma/client";
+import type {NhaXuatBan} from "@prisma/client";
 
 // Find all NhaXuatBan
-export const getAllNhaXuatBan = async (): Promise<NhaXuatBan[]> => {
-  return prisma.nhaXuatBan.findMany({
-    where: {
-      deleted: false,
-    },
-  });
+export const getAllNhaXuatBan = async (
+  pageSize: number,
+  page?: number | null,
+  sortBy: string = "MaNXB",
+  sortOrder: "asc" | "desc" = "asc"
+) => {
+  let itemList;
+  let totalItems;
+
+  if (page) {
+    const skip = (page - 1) * pageSize;
+
+    itemList = await prisma.nhaXuatBan.findMany({
+      skip,
+      take: pageSize,
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+    });
+
+    totalItems = await prisma.nhaXuatBan.count();
+  } else {
+    itemList = await prisma.nhaXuatBan.findMany({
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+    });
+
+    totalItems = itemList.length;
+  }
+
+  return {itemList, totalItems};
 };
 
 // Find NhaXuatBan by ID
