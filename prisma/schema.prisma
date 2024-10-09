@@ -12,7 +12,7 @@ model Docgia {
     HoLot     String
     Ten       String
     NgaySinh  DateTime
-    Phai      Boolean
+    Phai      Gender
     DiaChi    String
     DienThoai String
     updateAt  DateTime @updatedAt
@@ -21,6 +21,8 @@ model Docgia {
 
     // Relations
     MuonSach MuonSach[]
+
+    TaiKhoan TaiKhoan[]
 }
 
 model Sach {
@@ -30,7 +32,7 @@ model Sach {
     SoQuyen    Int
     NamXuatBan Int
     MaNXB      String   @db.ObjectId
-    NguonGoc   String // This could represent either the origin or author
+    NguonGoc   String
     updateAt   DateTime @updatedAt
     createAt   DateTime @default(now())
     deleted    Boolean  @default(false)
@@ -53,26 +55,22 @@ model NhaXuatBan {
 }
 
 model MuonSach {
-    MaMuon   String       @id @default(auto()) @map("_id") @db.ObjectId
-    MaDocGia String       @db.ObjectId
-    MaSach   String       @db.ObjectId
-    NgayMuon DateTime?
-    NgayTra  DateTime?
-    status   BorrowStatus @default(PENDING)
-    updateAt DateTime     @updatedAt
-    createAt DateTime     @default(now())
-    deleted  Boolean      @default(false)
+    MaMuon      String       @id @default(auto()) @map("_id") @db.ObjectId
+    MaDocGia    String       @db.ObjectId
+    MaSach      String       @db.ObjectId
+    MaNhanVien  String       @db.ObjectId
+    NgayMuon    DateTime?
+    NgayTra     DateTime?
+    NgayXacNhan DateTime?
+    status      BorrowStatus @default(PENDING)
+    updateAt    DateTime     @updatedAt
+    createAt    DateTime     @default(now())
+    deleted     Boolean      @default(false)
 
     // Relations
-    Docgia Docgia @relation(fields: [MaDocGia], references: [MaDocGia])
-    Sach   Sach   @relation(fields: [MaSach], references: [MaSach])
-}
-
-enum BorrowStatus {
-    PENDING // Request is created but not yet accepted
-    ACCEPTED // Request has been accepted by the librarian
-    BORROWED // Book is currently borrowed by the user
-    RETURNED // Book has been returned
+    NhanVien NhanVien @relation(fields: [MaNhanVien], references: [MSNV])
+    Docgia   Docgia   @relation(fields: [MaDocGia], references: [MaDocGia])
+    Sach     Sach     @relation(fields: [MaSach], references: [MaSach])
 }
 
 model NhanVien {
@@ -85,4 +83,39 @@ model NhanVien {
     updateAt    DateTime @updatedAt
     createAt    DateTime @default(now())
     deleted     Boolean  @default(false)
+
+    TaiKhoan TaiKhoan[]
+
+    MuonSach MuonSach[]
+}
+
+model TaiKhoan {
+    id         String    @id @default(auto()) @map("_id") @db.ObjectId
+    username   String    @unique
+    password   String
+    role       Role      @default(DOCGIA)
+    nhanVien   NhanVien? @relation(fields: [nhanVienId], references: [MSNV])
+    nhanVienId String?   @db.ObjectId
+    docGia     Docgia?   @relation(fields: [docGiaId], references: [MaDocGia])
+    docGiaId   String?   @db.ObjectId
+    createAt   DateTime  @default(now())
+    updateAt   DateTime  @updatedAt
+}
+
+enum Role {
+    NHANVIEN
+    DOCGIA
+}
+
+enum Gender {
+    MALE
+    FEMALE
+}
+
+enum BorrowStatus {
+    PENDING // Request is created but not yet accepted
+    ACCEPTED // Request has been accepted by the librarian
+    REJECTED // Request has been rejected by the librarian
+    BORROWED // Book is currently borrowed by the user
+    RETURNED // Book has been returned
 }
