@@ -2,12 +2,38 @@ import prisma from "../config/prisma";
 import {MuonSach} from "@prisma/client";
 
 // Find all MuonSach
-export const getAllMuonSach = async (): Promise<MuonSach[]> => {
-  return prisma.muonSach.findMany({
-    where: {
-      deleted: false,
-    },
-  });
+export const getAllMuonSach = async (
+  pageSize: number,
+  page?: number | null,
+  sortBy: string = "MaMuon",
+  sortOrder: "asc" | "desc" = "asc"
+) => {
+  let itemList;
+  let totalItems;
+
+  if (page) {
+    const skip = (page - 1) * pageSize;
+
+    itemList = await prisma.muonSach.findMany({
+      skip,
+      take: pageSize,
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+    });
+
+    totalItems = await prisma.muonSach.count();
+  } else {
+    itemList = await prisma.muonSach.findMany({
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+    });
+
+    totalItems = itemList.length;
+  }
+
+  return {itemList, totalItems};
 };
 
 // Find MuonSach by ID

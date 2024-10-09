@@ -4,12 +4,59 @@ import {MuonSach} from "@prisma/client";
 import {isValidObjectId} from "../utils/validObject";
 import {sendResponse} from "../utils/response";
 import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
-
+import {createQuerySchema} from "../schemas/query";
+import {z} from "zod";
 // Get all MuonSach
 export const getAllMuonSach = async (req: Request, res: Response, next: NextFunction) => {
+  const muonSachFields = z.enum([
+    "MaMuon",
+    "MaDocGia",
+    "MaSach",
+    "MaNhanVien",
+    "NgayMuon",
+    "NgayTra",
+    "NgayXacNhan",
+    "status",
+    "createAt",
+    "updateAt",
+    "deleted",
+  ]);
+
+  const muonSachQuerySchema = createQuerySchema(muonSachFields.options);
+  const {success, data, error} = muonSachQuerySchema.safeParse(req.query);
+
+  if (!success) {
+    return sendResponse(
+      res,
+      400,
+      "Invalid query string",
+      error.issues.map((issue) => issue.message)
+    );
+  }
+  const {page, pageSize, sortBy, sortOrder} = data;
   try {
-    const allMuonSach: MuonSach[] = await MuonSachService.getAllMuonSach();
-    return sendResponse(res, 200, "Retrieved all MuonSach", allMuonSach);
+    const {itemList, totalItems} = await MuonSachService.getAllMuonSach(
+      pageSize,
+      page,
+      sortBy,
+      sortOrder
+    );
+
+    if (page) {
+      const totalPages = Math.ceil(totalItems / pageSize);
+      const meta = {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        pageSize,
+        sortBy,
+        sortOrder,
+      };
+
+      return sendResponse(res, 200, `Retrieved paginated NhanVien at page ${page}`, itemList, meta);
+    } else {
+      return sendResponse(res, 200, "Retrieved all NhanVien", itemList);
+    }
   } catch (error) {
     next(error);
   }
