@@ -4,17 +4,60 @@ import {Docgia} from "@prisma/client";
 import {isValidObjectId} from "../utils/validObject";
 import {sendResponse} from "../utils/response";
 import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
+import {createQuerySchema} from "../schemas/query";
+import {z} from "zod";
 
 // Get all Docgia
 export const getAllDocGia = async (req: Request, res: Response, next: NextFunction) => {
+  const docGiaFields = z.enum([
+    "MaDocGia",
+    "HoLot",
+    "Ten",
+    "Phai",
+    "DiaChi",
+    "DienThoai",
+    "createAt",
+    "deleted",
+  ]);
+  const docGiaQuerySchema = createQuerySchema(docGiaFields.options);
+  const {success, data, error} = docGiaQuerySchema.safeParse(req.query);
+
+  if (!success) {
+    return sendResponse(
+      res,
+      400,
+      "Invalid query string",
+      error.issues.map((issue) => issue.message)
+    );
+  }
+  const {page, pageSize, sortBy, sortOrder} = data;
   try {
-    const allDocgia: Docgia[] = await DocgiaService.getAllDocgia();
-    return sendResponse(res, 200, "Retrieved all Docgia", allDocgia);
+    const {itemList, totalItems} = await DocgiaService.getAllDocgia(
+      pageSize,
+      page,
+      sortBy,
+      sortOrder
+    );
+
+    if (page) {
+      const totalPages = Math.ceil(totalItems / pageSize);
+      const meta = {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        pageSize,
+        sortBy,
+        sortOrder,
+      };
+
+      return sendResponse(res, 200, `Retrieved paginated DocGia at page ${page}`, itemList, meta);
+    } else {
+      return sendResponse(res, 200, "Retrieved all DocGia", itemList);
+    }
   } catch (error) {
     next(error);
   }
 };
-
 // Get Docgia by ID
 export const getDocGiaById = async (req: Request, res: Response, next: NextFunction) => {
   const {id} = req.params;
