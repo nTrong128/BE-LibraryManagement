@@ -9,7 +9,7 @@ export const generateTokenAndSetCookies = (res: Response, user: TaiKhoan) => {
     sendResponse(res, 500, "NO JWT SECRET FOUND");
   }
 
-  const token = jwt.sign({id: user.id}, secret, {
+  const token = jwt.sign({id: user.id, role: user.role}, secret, {
     expiresIn: "7h",
   });
   res.cookie("token", token, {

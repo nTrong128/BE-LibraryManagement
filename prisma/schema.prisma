@@ -112,11 +112,13 @@ model Docgia {
 enum Role {
     NHANVIEN
     DOCGIA
+    ADMIN
 }
 
 enum Gender {
     MALE
     FEMALE
+    OTHER
 }
 
 enum BorrowStatus {

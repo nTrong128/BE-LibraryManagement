@@ -11,8 +11,9 @@ export const authenticateToken = (req: AuthenticatedRequest, res: Response, next
     const decoded = jwt.verify(token, process.env.SECRET_KEY as string);
 
     if (!decoded) return sendResponse(res, 401, "Unauthorized - Invalid token");
-
+    console.log("decoded", decoded);
     req.userId = (decoded as jwt.JwtPayload).id;
+    req.role = (decoded as jwt.JwtPayload).role;
     next();
   } catch {
     console.log("error in authMiddleware");
