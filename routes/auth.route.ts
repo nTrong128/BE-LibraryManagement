@@ -16,13 +16,13 @@ import {Role} from "@prisma/client";
 
 const router = Router();
 
-router.get("/check-auth", authenticateToken, checkAuth);
 // Verify user after each refresh in frontend to keep user logged in
+router.get("/check-auth", authenticateToken, checkAuth);
 
-router.post("/admin-signup", validate(TaiKhoanSchema), checkRole([Role.ADMIN]), signup);
 // Tạo một tài khoản nhân viên thư viện
-router.post("/signup", validate(TaiKhoanSchema), signup);
+router.post("/admin-signup", checkRole([Role.ADMIN]), validate(TaiKhoanSchema), signup);
 // Tạo một tài khoản người dùng
+router.post("/signup", validate(TaiKhoanSchema), signup);
 
 router.post("/logout", logout);
 router.post("/login", validate(TaiKhoanSchema.pick({username: true, password: true})), login);
