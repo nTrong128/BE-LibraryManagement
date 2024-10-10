@@ -19,7 +19,7 @@ export const sendResetPasswordEmail = async (email: string, resetURL: string) =>
 
 export const sendResetPasswordSuccessEmail = async (email: string) => {
   const mailOptions = {
-    from: "nkoxvip0zz@gmail.com",
+    from: process.env.NODEMAILER_EMAIL,
     to: email,
     subject: "Password reset successfully",
     html: PASSWORD_RESET_SUCCESS_TEMPLATE,

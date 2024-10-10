@@ -16,7 +16,7 @@ export const generateTokenAndSetCookies = (res: Response, user: TaiKhoan) => {
     httpOnly: true,
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
-    maxAge: 7 * 60 * 60 * 1000,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 
   return token;
@@ -26,8 +26,8 @@ export const verifyToken = (token: string) => {
   return jwt.verify(token, process.env.JWT_SECRET as string);
 };
 
-function generateResetToken(id: string): string {
+export const generateResetToken = (id: string): string => {
   const secret = process.env.SECRET_KEY as string;
 
   return jwt.sign({id}, secret, {expiresIn: "10m"}); // Expires in 10 minutes
-}
+};
