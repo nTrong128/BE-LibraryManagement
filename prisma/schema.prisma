@@ -55,21 +55,6 @@ model MuonSach {
     Sach     Sach     @relation(fields: [MaSach], references: [MaSach])
 }
 
-model NhanVien {
-    MSNV        String   @id @default(auto()) @map("_id") @db.ObjectId
-    HoTenNV     String
-    ChucVu      String
-    DiaChi      String
-    SoDienThoai String
-    updateAt    DateTime @updatedAt
-    createAt    DateTime @default(now())
-    deleted     Boolean  @default(false)
-
-    TaiKhoan TaiKhoan[]
-
-    MuonSach MuonSach[]
-}
-
 model TaiKhoan {
     id       String @id @default(auto()) @map("_id") @db.ObjectId
     username String @unique
@@ -92,21 +77,37 @@ model TaiKhoan {
 }
 
 model Docgia {
-    MaDocGia  String    @id @default(auto()) @map("_id") @db.ObjectId
-    HoLot     String
-    Ten       String
-    NgaySinh  DateTime?
-    Phai      Gender?
-    DiaChi    String?
-    DienThoai String?
-    updateAt  DateTime  @updatedAt
-    createAt  DateTime  @default(now())
-    deleted   Boolean   @default(false)
+    MaDocGia    String @id @default(auto()) @map("_id") @db.ObjectId
+    HoTen       String
+    DiaChi      String
+    SoDienThoai String
+
+    NgaySinh DateTime?
+    Phai     Gender?
+    updateAt DateTime  @updatedAt
+    createAt DateTime  @default(now())
+    deleted  Boolean   @default(false)
 
     // Relations
     MuonSach MuonSach[]
 
     TaiKhoan TaiKhoan[]
+}
+
+model NhanVien {
+    MSNV        String @id @default(auto()) @map("_id") @db.ObjectId
+    HoTen       String
+    DiaChi      String
+    SoDienThoai String
+
+    ChucVu   String
+    updateAt DateTime @updatedAt
+    createAt DateTime @default(now())
+    deleted  Boolean  @default(false)
+
+    TaiKhoan TaiKhoan[]
+
+    MuonSach MuonSach[]
 }
 
 enum Role {
