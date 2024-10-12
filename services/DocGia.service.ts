@@ -47,7 +47,7 @@ export const getDocgiaById = async (id: string): Promise<Docgia | null> => {
 
 // Create a new Docgia
 export const createDocgia = async (
-  data: Omit<Docgia, "MaDocGia" | "createAt" | "updateAt" | "deleted">
+  data: Omit<Docgia, "MaDocGia" | "NgaySinh" | "Phai" | "createAt" | "updateAt" | "deleted">
 ): Promise<Docgia> => {
   return prisma.docgia.create({
     data,

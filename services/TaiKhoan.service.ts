@@ -4,7 +4,10 @@ import bcrypt from "bcrypt";
 import {sendResponse} from "../utils/response";
 
 export const createTaiKhoan = async (
-  data: Omit<TaiKhoan, "id" | "createAt" | "updateAt" | "deleted">
+  data: Omit<
+    TaiKhoan,
+    "id" | "resetPasswordToken" | "resetPasswordExpiresAt" | "createAt" | "updateAt" | "deleted"
+  >
 ) => {
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(data.password, saltRounds);
