@@ -3,6 +3,7 @@ import {
   login,
   logout,
   signup,
+  adminSignup,
   forgotPassword,
   resetPassword,
   checkAuth,
@@ -20,7 +21,8 @@ const router = Router();
 router.get("/check-auth", authenticateToken, checkAuth);
 
 // Tạo một tài khoản nhân viên thư viện
-router.post("/admin-signup", checkRole([Role.ADMIN]), validate(TaiKhoanSchema), signup);
+// router.post("/admin-signup", checkRole([Role.ADMIN]), validate(TaiKhoanSchema), adminSignup);
+router.post("/admin-signup", validate(TaiKhoanSchema), adminSignup);
 // Tạo một tài khoản người dùng
 router.post("/signup", validate(TaiKhoanSchema), signup);
 

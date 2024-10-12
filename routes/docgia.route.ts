@@ -14,7 +14,7 @@ import {Role} from "@prisma/client";
 const router = Router();
 
 router.get("/", checkRole([Role.ADMIN, Role.NHANVIEN]), getAllDocGia);
-router.get("/:id", checkRole([Role.ADMIN, Role.NHANVIEN]), getDocGiaById);
+router.get("/:id", getDocGiaById);
 router.post("/", checkRole([Role.ADMIN, Role.NHANVIEN]), validate(DocGiaSchema), createDocGia);
 
 router.put(
