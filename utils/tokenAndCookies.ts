@@ -10,7 +10,7 @@ export const generateTokenAndSetCookies = (res: Response, user: TaiKhoan) => {
   }
 
   const token = jwt.sign({id: user.id, role: user.role}, secret, {
-    expiresIn: "7h",
+    expiresIn: "7d",
   });
   res.cookie("token", token, {
     httpOnly: true,
