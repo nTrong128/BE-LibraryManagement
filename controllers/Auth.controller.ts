@@ -1,7 +1,9 @@
 import bcrypt from "bcrypt";
 import {Request, Response, NextFunction} from "express";
 import * as TaiKhoanService from "../services/TaiKhoan.service";
-import {TaiKhoan} from "@prisma/client";
+import * as DocGiaService from "../services/DocGia.service";
+import * as NhanVienService from "../services/NhanVien.service";
+import {Role, TaiKhoan} from "@prisma/client";
 import {generateTokenAndSetCookies} from "../utils/tokenAndCookies";
 import {sendResponse} from "../utils/response";
 import crypto from "crypto";
@@ -9,21 +11,82 @@ import {sendResetPasswordEmail, sendResetPasswordSuccessEmail} from "../utils/se
 import {AuthenticatedRequest} from "../utils/authenticateRequest";
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
-  const user: Omit<TaiKhoan, "id" | "createAt" | "updateAt" | "deleted"> = req.body;
+  const user: Omit<TaiKhoan, "id" | "createAt" | "updateAt" | "deleted"> & {
+    HoTen: string;
+    DiaChi: string;
+    SoDienThoai: string;
+    ChucVu?: string;
+  } = req.body;
   try {
     const existAccount = await TaiKhoanService.getTaiKhoanByUserNameOrEmail(
       user.username,
       user.email
     );
     if (existAccount) {
-      return sendResponse(res, 400, "Username or email already exists");
+      return sendResponse(res, 400, "Tài khoản hoặc mật khẩu đã tồn tại");
     }
 
-    const newUser = await TaiKhoanService.createTaiKhoan(user);
+    const newUser = await DocGiaService.createDocgia({
+      HoTen: user.HoTen,
+      DiaChi: user.DiaChi,
+      SoDienThoai: user.SoDienThoai,
+    });
+
+    const newAccount = await TaiKhoanService.createTaiKhoan({
+      username: user.username,
+      password: user.password,
+      email: user.email,
+      role: Role.DOCGIA,
+      nhanVienId: null,
+      docGiaId: newUser.MaDocGia,
+    });
 
     //jwt
-    generateTokenAndSetCookies(res, newUser);
-    sendResponse(res, 201, "Signup successfully", newUser);
+    generateTokenAndSetCookies(res, newAccount);
+
+    const {password, nhanVienId, ...noPasswordUser} = newAccount;
+
+    sendResponse(res, 201, "Đăng ký tài khoản thành công", noPasswordUser);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const adminSignup = async (req: Request, res: Response, next: NextFunction) => {
+  const user: Omit<TaiKhoan, "id" | "createAt" | "updateAt" | "deleted"> & {
+    HoTen: string;
+    DiaChi: string;
+    SoDienThoai: string;
+    ChucVu: string;
+  } = req.body;
+  try {
+    const existAccount = await TaiKhoanService.getTaiKhoanByUserNameOrEmail(
+      user.username,
+      user.email
+    );
+    if (existAccount) {
+      return sendResponse(res, 400, "Tài khoản hoặc mật khẩu đã tồn tại");
+    }
+
+    const newUser = await NhanVienService.createNhanVien({
+      HoTen: user.HoTen,
+      DiaChi: user.DiaChi,
+      SoDienThoai: user.SoDienThoai,
+      ChucVu: user.ChucVu,
+    });
+
+    const newAccount = await TaiKhoanService.createTaiKhoan({
+      username: user.username,
+      password: user.password,
+      email: user.email,
+      role: Role.NHANVIEN,
+      nhanVienId: newUser.MSNV,
+      docGiaId: null,
+    });
+
+    const {password, nhanVienId, ...noPasswordUser} = newAccount;
+
+    sendResponse(res, 201, "Tạo tài khoản nhân viên thành công", noPasswordUser);
   } catch (error) {
     next(error);
   }

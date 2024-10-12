@@ -1,11 +1,12 @@
 import type {Request, Response, NextFunction} from "express";
 import * as DocgiaService from "../services/DocGia.service";
-import {Docgia} from "@prisma/client";
+import {Docgia, Role} from "@prisma/client";
 import {isValidObjectId} from "../utils/validObject";
 import {sendResponse} from "../utils/response";
 import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
 import {createQuerySchema} from "../schemas/query";
 import {z} from "zod";
+import {AuthenticatedRequest} from "../utils/authenticateRequest";
 
 // Get all Docgia
 export const getAllDocGia = async (req: Request, res: Response, next: NextFunction) => {
@@ -59,11 +60,22 @@ export const getAllDocGia = async (req: Request, res: Response, next: NextFuncti
   }
 };
 // Get Docgia by ID
-export const getDocGiaById = async (req: Request, res: Response, next: NextFunction) => {
+export const getDocGiaById = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
   const {id} = req.params;
+
   if (!isValidObjectId(id)) {
     return sendResponse(res, 400, "Invalid Docgia ID");
   }
+  const userId = req.userId;
+  const role = req.role;
+
+  // if (userId !== id) {
+  //   return sendResponse(res, 403, "You are not authorized to access this resource");
+  // }
   try {
     const Docgia: Docgia | null = await DocgiaService.getDocgiaById(id);
 
