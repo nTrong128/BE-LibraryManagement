@@ -33,7 +33,7 @@ export const getAllMuonSach = async (req: Request, res: Response, next: NextFunc
       error.issues.map((issue) => issue.message)
     );
   }
-  const {page, pageSize, sortBy, sortOrder} = data;
+  const {page, pageSize, sortBy, sortOrder, search, searchBy} = data;
   try {
     const {itemList, totalItems} = await MuonSachService.getAllMuonSach(
       pageSize,
