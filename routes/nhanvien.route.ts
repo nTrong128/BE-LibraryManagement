@@ -14,7 +14,7 @@ import {Role} from "@prisma/client";
 const router = Router();
 
 router.get("/", checkRole([Role.ADMIN]), getAllNhanVien);
-router.get("/:id", checkRole([Role.ADMIN]), getNhanVienById);
+router.get("/:id", getNhanVienById);
 router.post("/", checkRole([Role.ADMIN]), validate(NhanVienSchema), createNhanVien);
 
 router.put("/:id", checkRole([Role.ADMIN]), validate(NhanVienSchema.partial()), updateNhanVien); // Partial validate only the fields that are being updated.

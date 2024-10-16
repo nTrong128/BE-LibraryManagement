@@ -2,6 +2,7 @@ import {z} from "zod";
 
 export const SachSchema = z.object({
   MaSach: z.string().optional(),
+  image: z.string().optional(),
   TenSach: z.string().min(1, {message: "Tên sách không được để trống"}),
   DonGia: z
     .number()

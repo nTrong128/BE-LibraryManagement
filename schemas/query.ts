@@ -1,12 +1,12 @@
 import {z} from "zod";
 
-export const createQuerySchema = (allowedSortFields: readonly string[]) => {
+export const createQuerySchema = (allowedFields: readonly string[]) => {
   return z.object({
     page: z
       .string()
       .optional()
       .refine((val) => !isNaN(Number(val)), {
-        message: "Page must be a number",
+        message: "Trang phải là số nguyên",
       })
       .transform(Number)
       .optional(),
@@ -14,12 +14,15 @@ export const createQuerySchema = (allowedSortFields: readonly string[]) => {
       .string()
       .optional()
       .refine((val) => !isNaN(Number(val)), {
-        message: "PageSize must be a number",
+        message: "Kích thước trang phải là số nguyên",
       })
       .default("5")
       .transform(Number),
-    sortBy: z.enum(allowedSortFields as [string, ...string[]]).default(allowedSortFields[0]),
+    sortBy: z.enum(allowedFields as [string, ...string[]]).default(allowedFields[0]),
     sortOrder: z.enum(["asc", "desc"]).default("asc"),
     search: z.string().optional(),
+    searchBy: z.enum(allowedFields as [string, ...string[]]).optional(),
+    filter: z.string().optional(),
+    filterBy: z.enum(allowedFields as [string, ...string[]]).optional(),
   });
 };
