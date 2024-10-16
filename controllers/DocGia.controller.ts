@@ -1,6 +1,6 @@
 import type {Request, Response, NextFunction} from "express";
 import * as DocgiaService from "../services/DocGia.service";
-import {Docgia, Role} from "@prisma/client";
+import {Docgia} from "@prisma/client";
 import {isValidObjectId} from "../utils/validObject";
 import {sendResponse} from "../utils/response";
 import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
@@ -12,11 +12,12 @@ import {AuthenticatedRequest} from "../utils/authenticateRequest";
 export const getAllDocGia = async (req: Request, res: Response, next: NextFunction) => {
   const docGiaFields = z.enum([
     "MaDocGia",
-    "HoLot",
-    "Ten",
+    "HoTen",
     "Phai",
     "DiaChi",
     "DienThoai",
+    "NgaySinh",
+    "updateAt",
     "createAt",
     "deleted",
   ]);
@@ -31,7 +32,7 @@ export const getAllDocGia = async (req: Request, res: Response, next: NextFuncti
       error.issues.map((issue) => issue.message)
     );
   }
-  const {page, pageSize, sortBy, sortOrder} = data;
+  const {page, pageSize, sortBy, sortOrder, search, searchBy} = data;
   try {
     const {itemList, totalItems} = await DocgiaService.getAllDocgia(
       pageSize,

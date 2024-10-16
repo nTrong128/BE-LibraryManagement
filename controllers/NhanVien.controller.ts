@@ -30,7 +30,7 @@ export const getAllNhanVien = async (req: Request, res: Response, next: NextFunc
       error.issues.map((issue) => issue.message)
     );
   }
-  const {page, pageSize, sortBy, sortOrder, search} = data;
+  const {page, pageSize, sortBy, sortOrder, search, searchBy} = data;
   try {
     const {itemList, totalItems} = await nhanVienService.getAllNhanVien(
       pageSize,
