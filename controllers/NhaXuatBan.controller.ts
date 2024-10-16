@@ -4,14 +4,25 @@ import {NhaXuatBan} from "@prisma/client";
 import {isValidObjectId} from "../utils/validObject";
 import {sendResponse} from "../utils/response";
 import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
+import {z} from "zod";
+import {createQuerySchema} from "../schemas/query";
 
 // Get all NhaXuatBan
 export const getAllNhaXuatBan = async (req: Request, res: Response, next: NextFunction) => {
-  const page = req.query.page ? parseInt(req.query.page as string) : null;
-  const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string) : 5;
-  const sortBy = (req.query.sortBy as string) || "MaNXB";
-  const sortOrder = (req.query.sortOrder as "asc" | "desc") || "asc";
+  const nxbFields = z.enum(["MaNXB", "TenNXB", "DiaChi", "updateAt", "createAt", "deleted"]);
 
+  const nxbQuerySchema = createQuerySchema(nxbFields.options);
+  const {success, data, error} = nxbQuerySchema.safeParse(req.query);
+
+  if (!success) {
+    return sendResponse(
+      res,
+      400,
+      "Invalid query string",
+      error.issues.map((issue) => issue.message)
+    );
+  }
+  const {page, pageSize, sortBy, sortOrder, search, searchBy} = data;
   try {
     const {itemList, totalItems} = await NhaXuatBanService.getAllNhaXuatBan(
       pageSize,

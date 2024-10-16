@@ -34,7 +34,7 @@ export const getAllSach = async (req: Request, res: Response, next: NextFunction
     );
   }
 
-  const {page, pageSize, sortBy, sortOrder} = data;
+  const {page, pageSize, sortBy, sortOrder, search, searchBy} = data;
   try {
     const {itemList, totalItems} = await SachService.getAllSach(pageSize, page, sortBy, sortOrder);
 
