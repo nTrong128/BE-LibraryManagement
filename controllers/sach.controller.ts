@@ -12,6 +12,7 @@ export const getAllSach = async (req: Request, res: Response, next: NextFunction
   const sachFields = z.enum([
     "MaSach",
     "TenSach",
+    "TenNXB",
     "DonGia",
     "SoQuyen",
     "NamXuatBan",
@@ -36,7 +37,14 @@ export const getAllSach = async (req: Request, res: Response, next: NextFunction
 
   const {page, pageSize, sortBy, sortOrder, search, searchBy} = data;
   try {
-    const {itemList, totalItems} = await SachService.getAllSach(pageSize, page, sortBy, sortOrder);
+    const {itemList, totalItems} = await SachService.getAllSach(
+      pageSize,
+      page,
+      sortBy,
+      sortOrder,
+      search,
+      searchBy
+    );
 
     if (page) {
       const totalPages = Math.ceil(totalItems / pageSize);

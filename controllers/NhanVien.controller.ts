@@ -36,7 +36,9 @@ export const getAllNhanVien = async (req: Request, res: Response, next: NextFunc
       pageSize,
       page,
       sortBy,
-      sortOrder
+      sortOrder,
+      search,
+      searchBy
     );
 
     if (page) {

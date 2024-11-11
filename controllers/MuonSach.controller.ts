@@ -39,7 +39,9 @@ export const getAllMuonSach = async (req: Request, res: Response, next: NextFunc
       pageSize,
       page,
       sortBy,
-      sortOrder
+      sortOrder,
+      search,
+      searchBy
     );
 
     if (page) {

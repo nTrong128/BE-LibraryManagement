@@ -38,7 +38,9 @@ export const getAllDocGia = async (req: Request, res: Response, next: NextFuncti
       pageSize,
       page,
       sortBy,
-      sortOrder
+      sortOrder,
+      search,
+      searchBy
     );
 
     if (page) {

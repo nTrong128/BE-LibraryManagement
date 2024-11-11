@@ -28,7 +28,9 @@ export const getAllNhaXuatBan = async (req: Request, res: Response, next: NextFu
       pageSize,
       page,
       sortBy,
-      sortOrder
+      sortOrder,
+      search,
+      searchBy
     );
 
     if (page) {

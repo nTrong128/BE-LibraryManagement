@@ -54,7 +54,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
 
 export const adminSignup = async (req: Request, res: Response, next: NextFunction) => {
   const user: Omit<TaiKhoan, "id" | "createAt" | "updateAt" | "deleted"> & {
-    HoTen: string;
+    HoTenNV: string;
     DiaChi: string;
     SoDienThoai: string;
     ChucVu: string;
@@ -69,7 +69,7 @@ export const adminSignup = async (req: Request, res: Response, next: NextFunctio
     }
 
     const newUser = await NhanVienService.createNhanVien({
-      HoTen: user.HoTen,
+      HoTenNV: user.HoTenNV,
       DiaChi: user.DiaChi,
       SoDienThoai: user.SoDienThoai,
       ChucVu: user.ChucVu,
@@ -97,12 +97,12 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
   try {
     const user = await TaiKhoanService.login(username, password);
     if (!user) {
-      return sendResponse(res, 400, "Invalid username or password");
+      return sendResponse(res, 400, "Tài khoản hoặc mật khẩu không đúng");
     }
 
     //   jwt
     generateTokenAndSetCookies(res, user);
-    sendResponse(res, 200, "Login successfully", {...user, password: undefined});
+    sendResponse(res, 200, "Đăng nhập thành công", {...user, password: undefined});
   } catch (error) {
     next(error);
   }
@@ -110,7 +110,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 
 export const logout = async (req: Request, res: Response, next: NextFunction) => {
   res.clearCookie("token");
-  sendResponse(res, 200, "Logout successfully");
+  sendResponse(res, 200, "Đăng xuất thành công");
 };
 
 export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
@@ -118,7 +118,7 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
   try {
     const user = await TaiKhoanService.getTaiKhoanByEmail(email);
     if (!user) {
-      return sendResponse(res, 404, "Email not found");
+      return sendResponse(res, 404, " Email không tồn tại");
     }
     const resetToken = crypto.randomBytes(32).toString("hex");
     const resetTokenExpiesAt = Date.now() + 1000 * 60 * 10; // 10 minutes
