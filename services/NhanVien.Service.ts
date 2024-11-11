@@ -7,18 +7,12 @@ export const getAllNhanVien = async (
   page?: number | null,
   sortBy: string = "MSNV",
   sortOrder: "asc" | "desc" = "asc",
-  filterBy?: string | null,
-  filter?: string | null,
   search?: string | null,
   searchBy?: string | null
 ) => {
   let whereClause: any = {
     deleted: false,
   };
-
-  if (filterBy && filter) {
-    whereClause[filterBy] = {contains: filter, mode: "insensitive"}; // Add filter condition
-  }
 
   if (searchBy && search) {
     whereClause[searchBy] = {contains: search, mode: "insensitive"}; // Case-insensitive search

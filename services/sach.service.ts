@@ -7,8 +7,6 @@ export const getAllSach = async (
   page?: number | null,
   sortBy: string = "MaSach",
   sortOrder: "asc" | "desc" = "asc",
-  filterBy?: string | null,
-  filter?: string | null,
   search?: string | null,
   searchBy?: string | null
 ) => {
@@ -16,16 +14,21 @@ export const getAllSach = async (
     deleted: false,
   };
 
-  if (filterBy && filter) {
-    whereClause[filterBy] = {contains: filter, mode: "insensitive"}; // Add filter condition
-  }
-
   if (searchBy && search) {
-    whereClause[searchBy] = {contains: search, mode: "insensitive"}; // Case-insensitive search
+    if (searchBy === "TenNXB") {
+      whereClause.NhaXuatBan = {
+        TenNXB: {contains: search, mode: "insensitive"}, // Case-insensitive search on TenNXB
+      };
+    } else {
+      whereClause[searchBy] = {contains: search, mode: "insensitive"}; // Case-insensitive search on other fields
+    }
   }
 
   let itemList;
   let totalItems;
+
+  const orderByClause =
+    sortBy === "TenNXB" ? {NhaXuatBan: {TenNXB: sortOrder}} : {[sortBy]: sortOrder};
 
   if (page) {
     const skip = (page - 1) * pageSize;
@@ -33,10 +36,11 @@ export const getAllSach = async (
     itemList = await prisma.sach.findMany({
       skip,
       take: pageSize,
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
+      orderBy: orderByClause,
       where: whereClause, // Apply both the filter and the `deleted: false` condition
+      include: {
+        NhaXuatBan: true, // Include NhaXuatBan relation to access TenNXB
+      },
     });
 
     totalItems = await prisma.sach.count({
@@ -44,10 +48,11 @@ export const getAllSach = async (
     });
   } else {
     itemList = await prisma.sach.findMany({
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
+      orderBy: orderByClause,
       where: whereClause,
+      include: {
+        NhaXuatBan: true, // Include NhaXuatBan relation to access TenNXB
+      },
     });
 
     totalItems = itemList.length;

@@ -7,18 +7,12 @@ export const getAllNhaXuatBan = async (
   page?: number | null,
   sortBy: string = "MaNXB",
   sortOrder: "asc" | "desc" = "asc",
-  filterBy?: string | null,
-  filter?: string | null,
   search?: string | null,
   searchBy?: string | null
 ) => {
   let whereClause: any = {
     deleted: false,
   };
-
-  if (filterBy && filter) {
-    whereClause[filterBy] = {contains: filter, mode: "insensitive"}; // Add filter condition
-  }
 
   if (searchBy && search) {
     whereClause[searchBy] = {contains: search, mode: "insensitive"}; // Case-insensitive search
@@ -37,6 +31,11 @@ export const getAllNhaXuatBan = async (
         [sortBy]: sortOrder,
       },
       where: whereClause, // Apply both the filter and the `deleted: false` condition
+      include: {
+        _count: {
+          select: {Sach: true},
+        },
+      },
     });
 
     totalItems = await prisma.nhaXuatBan.count({
@@ -48,6 +47,11 @@ export const getAllNhaXuatBan = async (
         [sortBy]: sortOrder,
       },
       where: whereClause,
+      include: {
+        _count: {
+          select: {Sach: true},
+        },
+      },
     });
 
     totalItems = itemList.length;
@@ -63,6 +67,11 @@ export const getNhaXuatBanById = async (id: string): Promise<NhaXuatBan | null> 
       MaNXB: id,
       deleted: false,
     },
+    include: {
+      _count: {
+        select: {Sach: true},
+      },
+    },
   });
 };
 
@@ -72,6 +81,11 @@ export const createNhaXuatBan = async (
 ): Promise<NhaXuatBan> => {
   return prisma.nhaXuatBan.create({
     data,
+    include: {
+      _count: {
+        select: {Sach: true},
+      },
+    },
   });
 };
 
@@ -82,6 +96,11 @@ export const updateNhaXuatBanById = async (
 ): Promise<NhaXuatBan> => {
   return prisma.nhaXuatBan.update({
     where: {MaNXB: id},
+    include: {
+      _count: {
+        select: {Sach: true},
+      },
+    },
     data,
   });
 };

@@ -97,7 +97,7 @@ model Docgia {
 
 model NhanVien {
     MSNV        String @id @default(auto()) @map("_id") @db.ObjectId
-    HoTen       String
+    HoTenNV     String
     DiaChi      String
     SoDienThoai String
 
