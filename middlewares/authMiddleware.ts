@@ -7,7 +7,6 @@ import {TokenExpiredError} from "jsonwebtoken";
 export const authenticateToken = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const token = req.cookies.token;
   if (!token) return sendResponse(res, 401, "Unauthorized - No token provided");
-
   try {
     const decoded = jwt.verify(token, process.env.SECRET_KEY as string);
 
@@ -20,6 +19,7 @@ export const authenticateToken = (req: AuthenticatedRequest, res: Response, next
     if (error instanceof TokenExpiredError) {
       return sendResponse(res, 401, "Unauthorized - Token expired");
     }
+
     console.log("error in authMiddleware");
     console.log(error);
     return sendResponse(res, 500, "Internal server error");

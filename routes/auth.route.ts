@@ -21,14 +21,24 @@ const router = Router();
 router.get("/check-auth", authenticateToken, checkAuth);
 
 // Tạo một tài khoản nhân viên thư viện
-// router.post("/admin-signup", checkRole([Role.ADMIN]), validate(TaiKhoanSchema), adminSignup);
-router.post("/admin-signup", validate(TaiKhoanSchema), adminSignup);
+
+router.post(
+  "/admin-signup",
+  authenticateToken,
+  checkRole([Role.ADMIN]),
+  validate(TaiKhoanSchema),
+  adminSignup
+);
+
 // Tạo một tài khoản người dùng
 router.post("/signup", validate(TaiKhoanSchema), signup);
 
-router.post("/logout", logout);
+router.post("/logout", authenticateToken, logout);
+
 router.post("/login", validate(TaiKhoanSchema.pick({username: true, password: true})), login);
+
 router.post("/forgot-password", forgotPassword);
+
 router.post("/reset-password/:token", resetPassword);
 
 export {router as AuthRouter};

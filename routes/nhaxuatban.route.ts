@@ -10,13 +10,15 @@ import {validate} from "../middlewares/validate";
 import {NhaXuatBanSchema} from "../schemas/nhaxuatban";
 import {checkRole} from "../utils/roleCheck";
 import {Role} from "@prisma/client";
+import {authenticateToken} from "../middlewares/authMiddleware";
 
 const router = Router();
 
-router.get("/", getAllNhaXuatBan);
+router.get("/", authenticateToken, getAllNhaXuatBan);
 router.get("/:id", getNhaXuatBanById);
 router.post(
   "/",
+  authenticateToken,
   checkRole([Role.ADMIN, Role.NHANVIEN]),
   validate(NhaXuatBanSchema),
   createNhaXuatBan
@@ -24,10 +26,11 @@ router.post(
 
 router.put(
   "/:id",
+  authenticateToken,
   checkRole([Role.ADMIN, Role.NHANVIEN]),
   validate(NhaXuatBanSchema.partial()),
   updateNhaXuatBan
 ); // Partial validate only the fields that are being updated.
-router.patch("/:id", checkRole([Role.ADMIN, Role.NHANVIEN]), deleteNhaXuatBan);
+router.patch("/:id", authenticateToken, checkRole([Role.ADMIN, Role.NHANVIEN]), deleteNhaXuatBan);
 
 export {router as nhaXuatBanRouter};
