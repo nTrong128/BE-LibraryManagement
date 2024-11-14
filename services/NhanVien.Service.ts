@@ -1,5 +1,5 @@
 import prisma from "../config/prisma";
-import {NhanVien} from "@prisma/client";
+import {NhanVien, Role} from "@prisma/client";
 
 // Find all NhanVien
 export const getAllNhanVien = async (
@@ -18,6 +18,18 @@ export const getAllNhanVien = async (
     whereClause[searchBy] = {contains: search, mode: "insensitive"}; // Case-insensitive search
   }
 
+  let orderByClause: any = {};
+
+  if (sortBy === "username") {
+    orderByClause = {TaiKhoan: {username: sortOrder}};
+  } else if (sortBy === "role") {
+    orderByClause = {TaiKhoan: {role: sortOrder}};
+  } else if (sortBy === "email") {
+    orderByClause = {TaiKhoan: {email: sortOrder}};
+  } else {
+    orderByClause = {[sortBy]: sortOrder};
+  }
+
   let itemList;
   let totalItems;
 
@@ -27,10 +39,17 @@ export const getAllNhanVien = async (
     itemList = await prisma.nhanVien.findMany({
       skip,
       take: pageSize,
-      orderBy: {
-        [sortBy]: sortOrder,
+      orderBy: orderByClause,
+      where: whereClause,
+      include: {
+        TaiKhoan: {
+          select: {
+            username: true,
+            role: true,
+            email: true,
+          },
+        },
       },
-      where: whereClause, // Apply both the filter and the `deleted: false` condition
     });
 
     totalItems = await prisma.nhanVien.count({
@@ -38,16 +57,30 @@ export const getAllNhanVien = async (
     });
   } else {
     itemList = await prisma.nhanVien.findMany({
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
+      orderBy: orderByClause,
       where: whereClause,
+      include: {
+        TaiKhoan: {
+          select: {
+            username: true,
+            role: true,
+            email: true,
+          },
+        },
+      },
     });
 
     totalItems = itemList.length;
   }
+  const reshapedItemList = itemList.map((nhanVien) => {
+    const {TaiKhoan, ...rest} = nhanVien;
+    const role = TaiKhoan ? TaiKhoan.role : null;
+    const username = TaiKhoan ? TaiKhoan.username : null;
+    const email = TaiKhoan ? TaiKhoan.email : null;
+    return {...rest, role, username, email};
+  });
 
-  return {itemList, totalItems};
+  return {itemList: reshapedItemList, totalItems};
 };
 
 // Find NhanVien by ID

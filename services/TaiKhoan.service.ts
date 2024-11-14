@@ -25,6 +25,10 @@ export const login = async (username: string, password: string) => {
     where: {
       username,
     },
+    include: {
+      docGia: true,
+      nhanVien: true,
+    },
   });
   if (!account) {
     return null;
@@ -42,6 +46,10 @@ export const getTaiKhoanById = async (id: string): Promise<TaiKhoan | null> => {
       id,
       deleted: false,
     },
+    include: {
+      docGia: true,
+      nhanVien: true,
+    },
   });
 };
 
@@ -50,6 +58,10 @@ export const getTaiKhoanByEmail = async (email: string): Promise<TaiKhoan | null
     where: {
       email,
       deleted: false,
+    },
+    include: {
+      docGia: true,
+      nhanVien: true,
     },
   });
 };
@@ -62,6 +74,10 @@ export const getTaiKhoanByUserNameOrEmail = async (
     where: {
       OR: [{username}, {email}],
     },
+    include: {
+      docGia: true,
+      nhanVien: true,
+    },
   });
 };
 
@@ -69,6 +85,21 @@ export const updateTaiKhoanById = async (id: string, data: Partial<TaiKhoan>) =>
   return prisma.taiKhoan.update({
     where: {id},
     data,
+    include: {
+      docGia: true,
+      nhanVien: true,
+    },
+  });
+};
+
+export const updateTaiKhoanRoleById = async (id: string, role: Role) => {
+  return prisma.taiKhoan.update({
+    where: {id}, //TODO: Fix this later
+    data: {role},
+    include: {
+      docGia: true,
+      nhanVien: true,
+    },
   });
 };
 
@@ -76,6 +107,10 @@ export const updateTaiKhoanByEmail = async (email: string, data: Partial<TaiKhoa
   return prisma.taiKhoan.update({
     where: {email},
     data,
+    include: {
+      docGia: true,
+      nhanVien: true,
+    },
   });
 };
 
@@ -86,6 +121,10 @@ export const getTaiKhoanByResetToken = async (resetToken: string): Promise<TaiKh
       resetPasswordExpiresAt: {
         gt: new Date(),
       },
+    },
+    include: {
+      docGia: true,
+      nhanVien: true,
     },
   });
 };

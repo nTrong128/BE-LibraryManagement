@@ -17,6 +17,15 @@ export const getAllDocgia = async (
   if (searchBy && search) {
     whereClause[searchBy] = {contains: search, mode: "insensitive"}; // Case-insensitive search
   }
+  let orderByClause: any = {};
+
+  if (sortBy === "username") {
+    orderByClause = {TaiKhoan: {username: sortOrder}};
+  } else if (sortBy === "email") {
+    orderByClause = {TaiKhoan: {email: sortOrder}};
+  } else {
+    orderByClause = {[sortBy]: sortOrder};
+  }
 
   let itemList;
   let totalItems;
@@ -27,10 +36,16 @@ export const getAllDocgia = async (
     itemList = await prisma.docgia.findMany({
       skip,
       take: pageSize,
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
+      orderBy: orderByClause,
       where: whereClause, // Apply both the filter and the `deleted: false` condition
+      include: {
+        TaiKhoan: {
+          select: {
+            username: true,
+            email: true,
+          },
+        },
+      },
     });
 
     totalItems = await prisma.docgia.count({
@@ -38,16 +53,29 @@ export const getAllDocgia = async (
     });
   } else {
     itemList = await prisma.docgia.findMany({
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
+      orderBy: orderByClause,
       where: whereClause,
+      include: {
+        TaiKhoan: {
+          select: {
+            username: true,
+            email: true,
+          },
+        },
+      },
     });
 
     totalItems = itemList.length;
   }
 
-  return {itemList, totalItems};
+  const reshapedItemList = itemList.map((docGia) => {
+    const {TaiKhoan, ...rest} = docGia;
+    const username = TaiKhoan ? TaiKhoan.username : null;
+    const email = TaiKhoan ? TaiKhoan.email : null;
+    return {...rest, username, email};
+  });
+
+  return {itemList: reshapedItemList, totalItems};
 };
 
 // Find Docgia by ID
