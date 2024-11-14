@@ -9,6 +9,8 @@ export const NhanVienSchema = z.object({
   Password: z.string().min(6, {message: "Mật khẩu phải có ít nhất 6 ký tự"}),
   ChucVu: z.string().min(1, {message: "Chức vụ không được để trống"}),
   DiaChi: z.string().min(1, {message: "Địa chỉ không được để trống"}),
+  role: z.enum(["ADMIN", "NHANVIEN", "DOCGIA"]).optional(),
+  username: z.string().optional(),
   SoDienThoai: z.string().regex(/^0\d{9,10}$/),
 });
 

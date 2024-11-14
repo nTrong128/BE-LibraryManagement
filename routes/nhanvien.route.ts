@@ -13,8 +13,8 @@ import {Role} from "@prisma/client";
 import {authenticateToken} from "../middlewares/authMiddleware";
 
 const router = Router();
-
-router.get("/", authenticateToken, checkRole([Role.ADMIN]), getAllNhanVien);
+//   ,authenticateToken , checkRole([Role.ADMIN])
+router.get("/", getAllNhanVien);
 
 router.get("/:id", authenticateToken, getNhanVienById);
 
@@ -28,9 +28,9 @@ router.post(
 
 router.put(
   "/:id",
-  authenticateToken,
-  checkRole([Role.ADMIN]),
-  validate(NhanVienSchema.partial()),
+  // authenticateToken,
+  // checkRole([Role.ADMIN]),
+  validate(NhanVienSchema.partial().strict()),
   updateNhanVien
 ); // Partial validate only the fields that are being updated.
 

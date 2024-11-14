@@ -18,7 +18,7 @@ router.get("/:id", getSachById);
 
 router.post("/", validate(SachSchema), createSach);
 
-router.put("/:id", validate(SachSchema.partial()), updateSach);
+router.put("/:id", validate(SachSchema.partial().strict()), updateSach);
 router.patch("/:id", deleteSach);
 
 export {router as SachRouter};

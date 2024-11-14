@@ -7,9 +7,11 @@ import {
   forgotPassword,
   resetPassword,
   checkAuth,
+  changePassword,
+  updateAccount,
 } from "../controllers/Auth.controller";
 import {validate} from "../middlewares/validate";
-import {TaiKhoanSchema} from "../schemas/taikhoan";
+import {TaiKhoanSchema, ChangePasswordSchema} from "../schemas/taikhoan";
 import {authenticateToken} from "../middlewares/authMiddleware";
 import {checkRole} from "../utils/roleCheck";
 
@@ -24,10 +26,34 @@ router.get("/check-auth", authenticateToken, checkAuth);
 
 router.post(
   "/admin-signup",
-  authenticateToken,
-  checkRole([Role.ADMIN]),
+  // authenticateToken,
+  // checkRole([Role.ADMIN]),
   validate(TaiKhoanSchema),
   adminSignup
+);
+
+router.post(
+  "/account",
+  // authenticateToken,
+  // checkRole([Role.ADMIN]),
+  validate(TaiKhoanSchema.partial()),
+  adminSignup
+);
+
+// Đổi mật khẩu
+router.post(
+  "/change-password",
+  authenticateToken,
+  validate(ChangePasswordSchema.strict()),
+  changePassword
+);
+
+// Cập nhật thông tin tài khoản
+router.post(
+  "/update-account",
+  authenticateToken,
+  validate(TaiKhoanSchema.partial()),
+  updateAccount
 );
 
 // Tạo một tài khoản người dùng

@@ -10,10 +10,12 @@ import {validate} from "../middlewares/validate";
 import {DocGiaSchema} from "../schemas/docgia";
 import {checkRole} from "../utils/roleCheck";
 import {Role} from "@prisma/client";
+import {authenticateToken} from "../middlewares/authMiddleware";
 
 const router = Router();
 
-router.get("/", checkRole([Role.ADMIN, Role.NHANVIEN]), getAllDocGia);
+router.get("/", authenticateToken, checkRole([Role.ADMIN, Role.NHANVIEN]), getAllDocGia);
+
 router.get("/:id", getDocGiaById);
 router.post("/", checkRole([Role.ADMIN, Role.NHANVIEN]), validate(DocGiaSchema), createDocGia);
 

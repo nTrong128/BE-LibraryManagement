@@ -7,11 +7,7 @@ export const checkRole = (requiredRole: Role[]) => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.userId || !req.role || !requiredRole.includes(req.role)) {
       console.log("Role check failed", req.userId, req.role, requiredRole);
-      return sendResponse(
-        res,
-        403,
-        "Forbidden - You don't have permission to access this resource"
-      );
+      return sendResponse(res, 403, "Forbidden - Bạn không có quyền truy cập tài nguyên này");
     }
     next();
   };
