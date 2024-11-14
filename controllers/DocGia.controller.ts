@@ -20,6 +20,7 @@ export const getAllDocGia = async (req: Request, res: Response, next: NextFuncti
     "updateAt",
     "createAt",
     "deleted",
+    "username",
   ]);
   const docGiaQuerySchema = createQuerySchema(docGiaFields.options);
   const {success, data, error} = docGiaQuerySchema.safeParse(req.query);
@@ -76,9 +77,6 @@ export const getDocGiaById = async (
   const userId = req.userId;
   const role = req.role;
 
-  // if (userId !== id) {
-  //   return sendResponse(res, 403, "You are not authorized to access this resource");
-  // }
   try {
     const Docgia: Docgia | null = await DocgiaService.getDocgiaById(id);
 

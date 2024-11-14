@@ -9,6 +9,8 @@ import {sendResponse} from "../utils/response";
 import crypto from "crypto";
 import {sendResetPasswordEmail, sendResetPasswordSuccessEmail} from "../utils/sendEmail";
 import {AuthenticatedRequest} from "../utils/authenticateRequest";
+import {isValidObjectId} from "../utils/validObject";
+import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
   const user: Omit<TaiKhoan, "id" | "createAt" | "updateAt" | "deleted"> & {
@@ -26,25 +28,24 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
       return sendResponse(res, 400, "Tài khoản hoặc mật khẩu đã tồn tại");
     }
 
-    const newUser = await DocGiaService.createDocgia({
-      HoTen: user.HoTen,
-      DiaChi: user.DiaChi,
-      SoDienThoai: user.SoDienThoai,
-    });
-
     const newAccount = await TaiKhoanService.createTaiKhoan({
       username: user.username,
       password: user.password,
       email: user.email,
       role: Role.DOCGIA,
-      nhanVienId: null,
-      docGiaId: newUser.MaDocGia,
+    });
+
+    const newUser = await DocGiaService.createDocgia({
+      HoTen: user.HoTen,
+      DiaChi: user.DiaChi,
+      SoDienThoai: user.SoDienThoai,
+      taiKhoanId: newAccount.id,
     });
 
     //jwt
     generateTokenAndSetCookies(res, newAccount);
 
-    const {password, nhanVienId, ...noPasswordUser} = newAccount;
+    const {password, ...noPasswordUser} = newAccount;
 
     sendResponse(res, 201, "Đăng ký tài khoản thành công", noPasswordUser);
   } catch (error) {
@@ -68,25 +69,24 @@ export const adminSignup = async (req: Request, res: Response, next: NextFunctio
       return sendResponse(res, 400, "Tài khoản hoặc mật khẩu đã tồn tại");
     }
 
-    const newUser = await NhanVienService.createNhanVien({
-      HoTenNV: user.HoTenNV,
-      DiaChi: user.DiaChi,
-      SoDienThoai: user.SoDienThoai,
-      ChucVu: user.ChucVu,
-    });
-
     const newAccount = await TaiKhoanService.createTaiKhoan({
       username: user.username,
       password: user.password,
       email: user.email,
       role: Role.NHANVIEN,
-      nhanVienId: newUser.MSNV,
-      docGiaId: null,
     });
 
-    const {password, nhanVienId, ...noPasswordUser} = newAccount;
+    const newUser = await NhanVienService.createNhanVien({
+      HoTenNV: user.HoTenNV,
+      DiaChi: user.DiaChi,
+      SoDienThoai: user.SoDienThoai,
+      ChucVu: user.ChucVu,
+      taiKhoanId: newAccount.id,
+    });
 
-    sendResponse(res, 201, "Tạo tài khoản nhân viên thành công", noPasswordUser);
+    const {password, ...noPasswordUser} = newAccount;
+
+    sendResponse(res, 201, "Tạo tài khoản nhân viên thành công", {...noPasswordUser, ...newUser});
   } catch (error) {
     next(error);
   }
@@ -171,6 +171,90 @@ export const checkAuth = async (req: AuthenticatedRequest, res: Response, next: 
     const {password, ...noPasswordUser} = user;
     sendResponse(res, 200, "Authenticated", noPasswordUser);
   } catch (error) {
+    next(error);
+  }
+};
+
+// Update Account (excluding password)
+export const updateAccount = async (req: Request, res: Response, next: NextFunction) => {
+  const {id} = req.params;
+  if (!isValidObjectId(id)) {
+    return sendResponse(res, 400, "ID tài khoản không hợp lệ");
+  }
+
+  try {
+    const accountData: Partial<TaiKhoan> = req.body;
+    const ChucVu = req.body.ChucVu;
+
+    const updatedAccount: TaiKhoan | null = await TaiKhoanService.updateTaiKhoanById(
+      id,
+      accountData
+    );
+
+    if (!updatedAccount) {
+      return sendResponse(res, 404, "Không tìm thấy tài khoản");
+    }
+
+    const {password, ...noPasswordAccount} = updatedAccount;
+
+    return sendResponse(res, 200, "Cập nhật tài khoản thành công", noPasswordAccount);
+  } catch (error) {
+    if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
+      return sendResponse(res, 404, "Không tìm thấy tài khoản");
+    }
+    next(error);
+  }
+};
+
+// Change Password
+export const changePassword = async (req: Request, res: Response, next: NextFunction) => {
+  const {id} = req.params;
+  if (!isValidObjectId(id)) {
+    return sendResponse(res, 400, "ID tài khoản không hợp lệ");
+  }
+
+  try {
+    const {currentPassword, newPassword, rePassword} = req.body;
+
+    // Validate new password and re-password
+    if (newPassword !== rePassword) {
+      return sendResponse(res, 400, "Mật khẩu mới và xác nhận mật khẩu không khớp");
+    }
+
+    // Validate new password length
+    if (newPassword.length < 6) {
+      return sendResponse(res, 400, "Mật khẩu mới phải có ít nhất 6 ký tự");
+    }
+
+    // Fetch the account to check the current password
+    const account: TaiKhoan | null = await TaiKhoanService.getTaiKhoanById(id);
+    if (!account) {
+      return sendResponse(res, 404, "Không tìm thấy tài khoản");
+    }
+
+    // Check if the current password is correct
+    const isPasswordValid = await bcrypt.compare(currentPassword, account.password);
+    if (!isPasswordValid) {
+      return sendResponse(res, 400, "Mật khẩu hiện tại không đúng");
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the password
+    const updatedAccount: TaiKhoan | null = await TaiKhoanService.updateTaiKhoanById(id, {
+      password: hashedPassword,
+    });
+
+    if (!updatedAccount) {
+      return sendResponse(res, 404, "Không tìm thấy tài khoản");
+    }
+
+    return sendResponse(res, 200, "Cập nhật mật khẩu thành công");
+  } catch (error) {
+    if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
+      return sendResponse(res, 404, "Không tìm thấy tài khoản");
+    }
     next(error);
   }
 };

@@ -109,6 +109,10 @@ export const updateSach = async (req: Request, res: Response, next: NextFunction
 
   try {
     const SachData: Partial<Sach> = req.body;
+    if (SachData.MaNXB && !isValidObjectId(SachData.MaNXB)) {
+      return sendResponse(res, 400, "Invalid NhaXuatBan ID");
+    }
+
     const updatedSach: Sach | null = await SachService.updateSachById(id, SachData);
 
     return sendResponse(res, 200, "Sach updated", updatedSach);

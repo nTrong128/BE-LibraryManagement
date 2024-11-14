@@ -63,9 +63,6 @@ model TaiKhoan {
     email    String @unique
     role     Role   @default(DOCGIA)
 
-    nhanVienId String? @db.ObjectId
-    docGiaId   String? @db.ObjectId
-
     resetPasswordToken     String?
     resetPasswordExpiresAt DateTime?
 
@@ -73,42 +70,41 @@ model TaiKhoan {
     createAt DateTime @default(now())
     updateAt DateTime @updatedAt
 
-    nhanVien NhanVien? @relation(fields: [nhanVienId], references: [MSNV])
-    docGia   Docgia?   @relation(fields: [docGiaId], references: [MaDocGia])
+    docGia   Docgia?
+    nhanVien NhanVien?
 }
 
 model Docgia {
-    MaDocGia    String @id @default(auto()) @map("_id") @db.ObjectId
+    MaDocGia    String    @id @default(auto()) @map("_id") @db.ObjectId
     HoTen       String
     DiaChi      String
     SoDienThoai String
+    NgaySinh    DateTime?
+    Phai        Gender?
 
-    NgaySinh DateTime?
-    Phai     Gender?
-    updateAt DateTime  @updatedAt
-    createAt DateTime  @default(now())
-    deleted  Boolean   @default(false)
-
-    // Relations
-    MuonSach MuonSach[]
-
-    TaiKhoan TaiKhoan[]
-}
-
-model NhanVien {
-    MSNV        String @id @default(auto()) @map("_id") @db.ObjectId
-    HoTenNV     String
-    DiaChi      String
-    SoDienThoai String
-
-    ChucVu   String
     updateAt DateTime @updatedAt
     createAt DateTime @default(now())
     deleted  Boolean  @default(false)
 
-    TaiKhoan TaiKhoan[]
+    taiKhoanId String     @unique @db.ObjectId
+    TaiKhoan   TaiKhoan?  @relation(fields: [taiKhoanId], references: [id])
+    MuonSach   MuonSach[]
+}
+
+model NhanVien {
+    MSNV        String   @id @default(auto()) @map("_id") @db.ObjectId
+    HoTenNV     String
+    DiaChi      String
+    SoDienThoai String
+    ChucVu      String
+    updateAt    DateTime @updatedAt
+    createAt    DateTime @default(now())
+    deleted     Boolean  @default(false)
+    taiKhoanId  String   @unique @db.ObjectId
 
     MuonSach MuonSach[]
+
+    TaiKhoan TaiKhoan? @relation(fields: [taiKhoanId], references: [id])
 }
 
 enum Role {

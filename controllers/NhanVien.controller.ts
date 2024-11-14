@@ -1,6 +1,7 @@
 import type {Request, Response, NextFunction} from "express";
 import * as nhanVienService from "../services/NhanVien.service";
-import {NhanVien} from "@prisma/client";
+import * as TaiKhoanService from "../services/TaiKhoan.service";
+import {NhanVien, Role} from "@prisma/client";
 import {isValidObjectId} from "../utils/validObject";
 import {sendResponse} from "../utils/response";
 import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
@@ -13,10 +14,13 @@ export const getAllNhanVien = async (req: Request, res: Response, next: NextFunc
     "HoTenNV",
     "ChucVu",
     "DiaChi",
+    "email",
     "SoDienThoai",
     "createAt",
     "updateAt",
     "deleted",
+    "role",
+    "username",
   ]);
 
   const nhanVienQuerySchema = createQuerySchema(nhanVienFields.options);
@@ -99,16 +103,24 @@ export const updateNhanVien = async (req: Request, res: Response, next: NextFunc
   }
 
   try {
-    const nhanVienData: Partial<NhanVien> = req.body;
-    const updatedNhanVien: NhanVien | null = await nhanVienService.updateNhanVienById(
-      id,
-      nhanVienData
-    );
+    const nhanVienData: Partial<NhanVien> & {role: Role} = req.body;
+    const {role, ...rest} = nhanVienData;
 
-    return sendResponse(res, 200, "NhanVien updated", updatedNhanVien);
+    const updatedNhanVien: NhanVien | null = await nhanVienService.updateNhanVienById(id, rest);
+
+    if (!updatedNhanVien) {
+      return sendResponse(res, 404, "Không tìm thấy nhân viên");
+    }
+
+    if (role !== undefined) {
+      await TaiKhoanService.updateTaiKhoanRoleById(id, role);
+    }
+
+    return sendResponse(res, 200, "Cập nhật nhân viên", nhanVienData);
   } catch (error) {
+    console.log("ERROR:", error);
     if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
-      return sendResponse(res, 404, "NhanVien not found");
+      return sendResponse(res, 404, "ID không hơp lệ");
     }
     next(error);
   }
