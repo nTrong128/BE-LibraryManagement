@@ -7,6 +7,7 @@ import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
 import {createQuerySchema} from "../schemas/query";
 import {z} from "zod";
 import {AuthenticatedRequest} from "../utils/authenticateRequest";
+import * as TaiKhoanService from "../services/TaiKhoan.service";
 
 // Get all Docgia
 export const getAllDocGia = async (req: Request, res: Response, next: NextFunction) => {
@@ -21,6 +22,7 @@ export const getAllDocGia = async (req: Request, res: Response, next: NextFuncti
     "createAt",
     "deleted",
     "username",
+    "email",
   ]);
   const docGiaQuerySchema = createQuerySchema(docGiaFields.options);
   const {success, data, error} = docGiaQuerySchema.safeParse(req.query);
@@ -109,8 +111,15 @@ export const updateDocgia = async (req: Request, res: Response, next: NextFuncti
   }
 
   try {
-    const DocgiaData: Partial<Docgia> = req.body;
-    const updatedDocgia: Docgia | null = await DocgiaService.updateDocgiaById(id, DocgiaData);
+    const DocgiaData: Partial<Docgia> & {email: string; taiKhoanId: string} = req.body;
+    const {email, taiKhoanId, ...rest} = DocgiaData;
+    const updatedDocgia: Docgia | null = await DocgiaService.updateDocgiaById(id, rest);
+    if (!updatedDocgia) {
+      return sendResponse(res, 404, "Không tìm thấy đọc giả");
+    }
+    if (email !== undefined) {
+      await TaiKhoanService.updateTaiKhoanById(taiKhoanId, {email});
+    }
 
     return sendResponse(res, 200, "Docgia updated", updatedDocgia);
   } catch (error) {

@@ -8,7 +8,7 @@ export const DocGiaSchema = z.object({
   DienThoai: z.string().regex(/^0\d{9,10}$/, {
     message: "Số điện thoại phải bắt đầu bằng số 0 và có 10 hoặc 11 chữ số",
   }),
-  Phai: z.enum(["MALE", "FEMALE"], {
+  Phai: z.enum(["MALE", "FEMALE", "OTHER"], {
     message: "Giới tính không hợp lệ",
   }),
   NgaySinh: z.coerce.date(),

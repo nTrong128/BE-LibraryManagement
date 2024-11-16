@@ -7,7 +7,7 @@ export const getAllNhanVien = async (
   page?: number | null,
   sortBy: string = "MSNV",
   sortOrder: "asc" | "desc" = "asc",
-  search?: string | null,
+  search?: string | string[] | null,
   searchBy?: string | null
 ) => {
   let whereClause: any = {
@@ -15,7 +15,17 @@ export const getAllNhanVien = async (
   };
 
   if (searchBy && search) {
-    whereClause[searchBy] = {contains: search, mode: "insensitive"}; // Case-insensitive search
+    if (searchBy === "username") {
+      whereClause.TaiKhoan = {
+        username: {contains: search, mode: "insensitive"}, // Case-insensitive search on username
+      };
+    } else if (searchBy === "email") {
+      whereClause.TaiKhoan = {
+        email: {contains: search, mode: "insensitive"}, // Case-insensitive search on email
+      };
+    } else {
+      whereClause[searchBy] = {contains: search, mode: "insensitive"}; // Case-insensitive search
+    }
   }
 
   let orderByClause: any = {};
@@ -26,6 +36,8 @@ export const getAllNhanVien = async (
     orderByClause = {TaiKhoan: {role: sortOrder}};
   } else if (sortBy === "email") {
     orderByClause = {TaiKhoan: {email: sortOrder}};
+  } else if (sortBy === "deleted") {
+    whereClause.deleted = true;
   } else {
     orderByClause = {[sortBy]: sortOrder};
   }
@@ -115,8 +127,27 @@ export const updateNhanVienById = async (
 
 // Soft delete NhanVien by ID
 export const softDeleteNhanVienById = async (id: string): Promise<NhanVien> => {
-  return prisma.nhanVien.update({
-    where: {MSNV: id},
-    data: {deleted: true},
+  return prisma.$transaction(async (tx) => {
+    // First find the NhanVien to get its TaiKhoan ID
+    const nhanVien = await tx.nhanVien.findUnique({
+      where: {MSNV: id},
+      include: {TaiKhoan: true},
+    });
+
+    if (!nhanVien || !nhanVien.TaiKhoan) {
+      throw new Error("NhanVien or TaiKhoan not found");
+    }
+
+    // Update TaiKhoan's deleted status
+    await tx.taiKhoan.update({
+      where: {id: nhanVien.TaiKhoan.id},
+      data: {deleted: true},
+    });
+
+    // Update NhanVien's deleted status
+    return tx.nhanVien.update({
+      where: {MSNV: id},
+      data: {deleted: true},
+    });
   });
 };

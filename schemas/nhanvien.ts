@@ -12,6 +12,8 @@ export const NhanVienSchema = z.object({
   role: z.enum(["ADMIN", "NHANVIEN", "DOCGIA"]).optional(),
   username: z.string().optional(),
   SoDienThoai: z.string().regex(/^0\d{9,10}$/),
+  taiKhoanId: z.string().optional(),
+  email: z.string().email().optional(),
 });
 
 export type NhanVien = z.infer<typeof NhanVienSchema>;

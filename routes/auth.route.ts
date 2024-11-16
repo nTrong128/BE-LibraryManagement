@@ -8,6 +8,7 @@ import {
   resetPassword,
   checkAuth,
   changePassword,
+  adminCreateUser,
   updateAccount,
 } from "../controllers/Auth.controller";
 import {validate} from "../middlewares/validate";
@@ -30,6 +31,14 @@ router.post(
   // checkRole([Role.ADMIN]),
   validate(TaiKhoanSchema),
   adminSignup
+);
+
+router.post(
+  "/admin-create-user",
+  // authenticateToken,
+  // checkRole([Role.ADMIN]),
+  validate(TaiKhoanSchema),
+  adminCreateUser
 );
 
 router.post(
@@ -57,7 +66,7 @@ router.post(
 );
 
 // Tạo một tài khoản người dùng
-router.post("/signup", validate(TaiKhoanSchema), signup);
+router.post("/signup", validate(TaiKhoanSchema.strict()), signup);
 
 router.post("/logout", authenticateToken, logout);
 

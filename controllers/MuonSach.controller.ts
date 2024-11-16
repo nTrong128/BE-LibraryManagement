@@ -1,25 +1,26 @@
 import type {Request, Response, NextFunction} from "express";
 import * as MuonSachService from "../services/MuonSach.service";
+import * as SachService from "../services/sach.service";
 import {MuonSach} from "@prisma/client";
 import {isValidObjectId} from "../utils/validObject";
 import {sendResponse} from "../utils/response";
 import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
 import {createQuerySchema} from "../schemas/query";
 import {z} from "zod";
+import {AuthenticatedRequest} from "../utils/authenticateRequest";
 // Get all MuonSach
 export const getAllMuonSach = async (req: Request, res: Response, next: NextFunction) => {
   const muonSachFields = z.enum([
+    "TenSach",
     "MaMuon",
-    "MaDocGia",
-    "MaSach",
-    "MaNhanVien",
     "NgayMuon",
     "NgayTra",
+    "NgayYeuCau",
     "NgayXacNhan",
-    "status",
-    "createAt",
     "updateAt",
+    "createAt",
     "deleted",
+    "status",
   ]);
 
   const muonSachQuerySchema = createQuerySchema(muonSachFields.options);
@@ -55,9 +56,9 @@ export const getAllMuonSach = async (req: Request, res: Response, next: NextFunc
         sortOrder,
       };
 
-      return sendResponse(res, 200, `Retrieved paginated NhanVien at page ${page}`, itemList, meta);
+      return sendResponse(res, 200, `Retrieved paginated MuonSach at page ${page}`, itemList, meta);
     } else {
-      return sendResponse(res, 200, "Retrieved all NhanVien", itemList);
+      return sendResponse(res, 200, "Retrieved all MuonSach", itemList);
     }
   } catch (error) {
     next(error);
@@ -71,7 +72,7 @@ export const getMuonSachhById = async (req: Request, res: Response, next: NextFu
     return sendResponse(res, 400, "Invalid MuonSach ID");
   }
   try {
-    const MuonSach: MuonSach | null = await MuonSachService.getMuonSachById(id);
+    const MuonSach = await MuonSachService.getMuonSachById(id);
 
     if (!MuonSach) {
       return sendResponse(res, 404, "MuonSach not found");
@@ -91,7 +92,7 @@ export const getMuonSachhBySachId = async (req: Request, res: Response, next: Ne
     return sendResponse(res, 400, "Invalid MuonSach ID");
   }
   try {
-    const MuonSach: MuonSach[] | null = await MuonSachService.getMuonSachBySachId(id);
+    const MuonSach = await MuonSachService.getMuonSachBySachId(id);
 
     if (!MuonSach) {
       return sendResponse(res, 404, "MuonSach not found");
@@ -106,19 +107,64 @@ export const getMuonSachhBySachId = async (req: Request, res: Response, next: Ne
 // Get MuonSach by DocGia ID
 
 export const getMuonSachhByDocGiaId = async (req: Request, res: Response, next: NextFunction) => {
-  const {id} = req.params;
-  if (!isValidObjectId(id)) {
-    return sendResponse(res, 400, "Invalid MuonSach ID");
-  }
-  try {
-    const MuonSach: MuonSach[] | null = await MuonSachService.getMuonSachByDocGiaId(id);
+  const muonSachFields = z.enum([
+    "TenSach",
+    "MaMuon",
+    "NgayMuon",
+    "NgayTra",
+    "NgayYeuCau",
+    "NgayXacNhan",
+    "updateAt",
+    "createAt",
+    "deleted",
+    "status",
+  ]);
 
-    if (!MuonSach) {
-      return sendResponse(res, 404, "MuonSach not found");
+  const muonSachQuerySchema = createQuerySchema(muonSachFields.options);
+  const {success, data, error} = muonSachQuerySchema.safeParse(req.query);
+
+  if (!success) {
+    return sendResponse(
+      res,
+      400,
+      "Invalid query string",
+      error.issues.map((issue) => issue.message)
+    );
+  }
+  const {id} = req.params;
+
+  if (!isValidObjectId(id)) {
+    return sendResponse(res, 400, "Invalid DocGia ID");
+  }
+  const {page, pageSize, sortBy, sortOrder, search, searchBy} = data;
+
+  try {
+    const {itemList, totalItems} = await MuonSachService.getMuonSachByDocGiaId(
+      id,
+      pageSize,
+      page,
+      sortBy,
+      sortOrder,
+      search,
+      searchBy
+    );
+
+    if (page) {
+      const totalPages = Math.ceil(totalItems / pageSize);
+      const meta = {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        pageSize,
+        sortBy,
+        sortOrder,
+      };
+
+      return sendResponse(res, 200, `Retrieved paginated MuonSach at page ${page}`, itemList, meta);
+    } else {
+      return sendResponse(res, 200, "Retrieved all MuonSach", itemList);
     }
-    sendResponse(res, 200, "Retrieved MuonSach", MuonSach);
   } catch (error) {
-    console.error("Error fetching MuonSach:", error);
     next(error);
   }
 };
@@ -126,9 +172,32 @@ export const getMuonSachhByDocGiaId = async (req: Request, res: Response, next: 
 // Create new MuonSach
 export const createMuonSach = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const MuonSachData: Omit<MuonSach, "MaMuon" | "DonGia" | "createAt" | "updateAt" | "deleted"> =
-      req.body;
-    const newMuonSach: MuonSach = await MuonSachService.createMuonSach(MuonSachData);
+    const MuonSachData: MuonSach = req.body;
+    const existMuonSach = await MuonSachService.getMuonSachByDocGiaIdAndSachId(
+      MuonSachData.MaDocGia,
+      MuonSachData.MaSach
+    );
+    if (existMuonSach.length > 0) {
+      return sendResponse(res, 400, "Đang mượn sách này!!");
+    }
+
+    const sach = await SachService.getSachById(MuonSachData.MaSach!);
+    if (!sach) {
+      return sendResponse(res, 404, "Không tìm thấy sách");
+    }
+
+    if (sach.SoQuyen <= 0) {
+      return sendResponse(res, 400, "Sách tạm hết");
+    }
+    if (
+      MuonSachData.NgayTra &&
+      MuonSachData.NgayMuon &&
+      (MuonSachData.NgayTra < MuonSachData.NgayMuon || MuonSachData.NgayTra < new Date())
+    ) {
+      return sendResponse(res, 400, "Ngày mượn/trả không hợp lệ");
+    }
+
+    const newMuonSach = await MuonSachService.createMuonSach(MuonSachData);
     return sendResponse(res, 201, "MuonSach created", newMuonSach);
   } catch (error) {
     next(error);
@@ -144,7 +213,7 @@ export const updateMuonSach = async (req: Request, res: Response, next: NextFunc
 
   try {
     const MuonSachData: Partial<MuonSach> = req.body;
-    const updatedSach: MuonSach | null = await MuonSachService.updateMuonSachById(id, MuonSachData);
+    const updatedSach = await MuonSachService.updateMuonSachById(id, MuonSachData);
 
     return sendResponse(res, 200, "MuonSach updated", updatedSach);
   } catch (error) {
@@ -170,6 +239,32 @@ export const deleteMuonSach = async (req: Request, res: Response, next: NextFunc
     }
 
     return sendResponse(res, 204);
+  } catch (error) {
+    if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
+      return sendResponse(res, 404, "MuonSach not found");
+    }
+    next(error);
+  }
+};
+
+export const adminUpdateMuonSach = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const {id} = req.params;
+  if (!isValidObjectId(id)) {
+    return sendResponse(res, 400, "Invalid MuonSach ID");
+  }
+  const MuonSachData: Partial<MuonSach> = req.body;
+
+  try {
+    const updatedSach = await MuonSachService.updateMuonSachById(id, MuonSachData);
+    if (!updatedSach) {
+      return sendResponse(res, 404, "MuonSach not found");
+    }
+
+    return sendResponse(res, 200, "MuonSach updated", updatedSach);
   } catch (error) {
     if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
       return sendResponse(res, 404, "MuonSach not found");

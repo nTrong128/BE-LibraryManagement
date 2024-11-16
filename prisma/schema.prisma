@@ -38,22 +38,26 @@ model NhaXuatBan {
 }
 
 model MuonSach {
-    MaMuon      String       @id @default(auto()) @map("_id") @db.ObjectId
-    MaDocGia    String       @db.ObjectId
-    MaSach      String       @db.ObjectId
-    MaNhanVien  String       @db.ObjectId
-    NgayMuon    DateTime?
-    NgayTra     DateTime?
+    MaMuon      String    @id @default(auto()) @map("_id") @db.ObjectId
+    MaDocGia    String    @db.ObjectId
+    MaSach      String    @db.ObjectId
+    MaNhanVien  String?   @db.ObjectId
+    NgayYeuCau  DateTime  @default(now())
     NgayXacNhan DateTime?
-    status      BorrowStatus @default(PENDING)
-    updateAt    DateTime     @updatedAt
-    createAt    DateTime     @default(now())
-    deleted     Boolean      @default(false)
+
+    hoanThanh DateTime?
+
+    NgayMuon DateTime?    @default(now())
+    NgayTra  DateTime?
+    status   BorrowStatus @default(PENDING)
+    updateAt DateTime     @updatedAt
+    createAt DateTime     @default(now())
+    deleted  Boolean      @default(false)
 
     // Relations
-    NhanVien NhanVien @relation(fields: [MaNhanVien], references: [MSNV])
-    Docgia   Docgia   @relation(fields: [MaDocGia], references: [MaDocGia])
-    Sach     Sach     @relation(fields: [MaSach], references: [MaSach])
+    NhanVien NhanVien? @relation(fields: [MaNhanVien], references: [MSNV])
+    Docgia   Docgia    @relation(fields: [MaDocGia], references: [MaDocGia])
+    Sach     Sach      @relation(fields: [MaSach], references: [MaSach])
 }
 
 model TaiKhoan {
@@ -75,12 +79,12 @@ model TaiKhoan {
 }
 
 model Docgia {
-    MaDocGia    String    @id @default(auto()) @map("_id") @db.ObjectId
-    HoTen       String
-    DiaChi      String
-    SoDienThoai String
-    NgaySinh    DateTime?
-    Phai        Gender?
+    MaDocGia  String    @id @default(auto()) @map("_id") @db.ObjectId
+    HoTen     String
+    DiaChi    String
+    DienThoai String
+    NgaySinh  DateTime?
+    Phai      Gender?
 
     updateAt DateTime @updatedAt
     createAt DateTime @default(now())

@@ -21,6 +21,7 @@ export const getAllNhanVien = async (req: Request, res: Response, next: NextFunc
     "deleted",
     "role",
     "username",
+    "deleted",
   ]);
 
   const nhanVienQuerySchema = createQuerySchema(nhanVienFields.options);
@@ -103,8 +104,9 @@ export const updateNhanVien = async (req: Request, res: Response, next: NextFunc
   }
 
   try {
-    const nhanVienData: Partial<NhanVien> & {role: Role} = req.body;
-    const {role, ...rest} = nhanVienData;
+    const nhanVienData: Partial<NhanVien> & {role: Role; email: string; taiKhoanId: string} =
+      req.body;
+    const {role, email, taiKhoanId, ...rest} = nhanVienData;
 
     const updatedNhanVien: NhanVien | null = await nhanVienService.updateNhanVienById(id, rest);
 
@@ -113,7 +115,10 @@ export const updateNhanVien = async (req: Request, res: Response, next: NextFunc
     }
 
     if (role !== undefined) {
-      await TaiKhoanService.updateTaiKhoanRoleById(id, role);
+      await TaiKhoanService.updateTaiKhoanRoleById(taiKhoanId, role);
+    }
+    if (email !== undefined) {
+      await TaiKhoanService.updateTaiKhoanById(taiKhoanId, {email});
     }
 
     return sendResponse(res, 200, "Cập nhật nhân viên", nhanVienData);

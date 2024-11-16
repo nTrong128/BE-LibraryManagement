@@ -7,32 +7,30 @@ import {
   getMuonSachhByDocGiaId,
   updateMuonSach,
   getMuonSachhBySachId,
+  adminUpdateMuonSach,
 } from "../controllers/MuonSach.controller";
 import {validate} from "../middlewares/validate";
 import {MuonSachSchema} from "../schemas/muonsach";
 import {checkRole} from "../utils/roleCheck";
 import {Role} from "@prisma/client";
+import {authenticateToken} from "../middlewares/authMiddleware";
 
 const router = Router();
 
-router.get("/", checkRole([Role.ADMIN, Role.NHANVIEN]), getAllMuonSach);
-router.get("/:id", checkRole([Role.ADMIN, Role.NHANVIEN]), getMuonSachhById);
+router.get("/", getAllMuonSach);
+router.get("/:id", getMuonSachhById);
 router.get("/docgia/:id", getMuonSachhByDocGiaId);
-router.get("/sach/:id", checkRole([Role.ADMIN, Role.NHANVIEN]), getMuonSachhBySachId);
+router.get("/sach/:id", getMuonSachhBySachId);
 
-router.post(
-  "/",
-  checkRole([Role.DOCGIA, Role.ADMIN, Role.NHANVIEN]),
-  validate(MuonSachSchema),
-  createMuonSach
-);
+router.post("/", validate(MuonSachSchema), createMuonSach);
 
-router.put(
-  "/:id",
-  checkRole([Role.ADMIN, Role.DOCGIA, Role.NHANVIEN]),
+router.patch(
+  "/:id/status",
+  authenticateToken,
   validate(MuonSachSchema.partial()),
-  updateMuonSach
+  adminUpdateMuonSach
 );
-router.patch("/:id", checkRole([Role.ADMIN, Role.NHANVIEN]), deleteMuonSach);
+router.patch("/:id", validate(MuonSachSchema.partial()), updateMuonSach);
+router.delete("/:id", deleteMuonSach);
 
 export {router as MuonSachRouter};

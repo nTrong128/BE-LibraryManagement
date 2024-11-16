@@ -7,7 +7,7 @@ export const getAllDocgia = async (
   page?: number | null,
   sortBy: string = "MaDocGia",
   sortOrder: "asc" | "desc" = "asc",
-  search?: string | null,
+  search?: string | string[] | null,
   searchBy?: string | null
 ) => {
   let whereClause: any = {
@@ -15,14 +15,27 @@ export const getAllDocgia = async (
   };
 
   if (searchBy && search) {
-    whereClause[searchBy] = {contains: search, mode: "insensitive"}; // Case-insensitive search
+    if (searchBy === "username") {
+      whereClause.TaiKhoan = {
+        username: {contains: search, mode: "insensitive"}, // Case-insensitive search on username
+      };
+    } else if (searchBy === "email") {
+      whereClause.TaiKhoan = {
+        email: {contains: search, mode: "insensitive"}, // Case-insensitive search on email
+      };
+    } else {
+      whereClause[searchBy] = {contains: search, mode: "insensitive"}; // Case-insensitive search
+    }
   }
+
   let orderByClause: any = {};
 
   if (sortBy === "username") {
     orderByClause = {TaiKhoan: {username: sortOrder}};
   } else if (sortBy === "email") {
     orderByClause = {TaiKhoan: {email: sortOrder}};
+  } else if (sortBy === "deleted") {
+    whereClause.deleted = true;
   } else {
     orderByClause = {[sortBy]: sortOrder};
   }
@@ -107,8 +120,33 @@ export const updateDocgiaById = async (id: string, data: Partial<Docgia>): Promi
 
 // Soft delete Docgia by ID
 export const softDeleteDocgiaById = async (id: string): Promise<Docgia> => {
-  return prisma.docgia.update({
+  return prisma.$transaction(async (tx) => {
+    // First find the docgia to get its TaiKhoan ID
+    const docgia = await tx.docgia.findUnique({
+      where: {MaDocGia: id},
+      include: {TaiKhoan: true},
+    });
+
+    if (!docgia || !docgia.TaiKhoan) {
+      throw new Error("docgia or TaiKhoan not found");
+    }
+
+    // Update TaiKhoan's deleted status
+    await tx.taiKhoan.update({
+      where: {id: docgia.TaiKhoan.id},
+      data: {deleted: true},
+    });
+
+    // Update docgia's deleted status
+    return tx.docgia.update({
+      where: {MaDocGia: id},
+      data: {deleted: true},
+    });
+  });
+};
+
+export const deleteDocGia = (id: string): Promise<Docgia> => {
+  return prisma.docgia.delete({
     where: {MaDocGia: id},
-    data: {deleted: true},
   });
 };

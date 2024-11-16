@@ -128,3 +128,12 @@ export const getTaiKhoanByResetToken = async (resetToken: string): Promise<TaiKh
     },
   });
 };
+
+export const deleteAccount = async (id: string) => {
+  return prisma.taiKhoan.update({
+    where: {id},
+    data: {
+      deleted: true,
+    },
+  });
+};

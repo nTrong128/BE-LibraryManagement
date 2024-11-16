@@ -7,7 +7,7 @@ export const getAllSach = async (
   page?: number | null,
   sortBy: string = "MaSach",
   sortOrder: "asc" | "desc" = "asc",
-  search?: string | null,
+  search?: string | string[] | null,
   searchBy?: string | null
 ) => {
   let whereClause: any = {

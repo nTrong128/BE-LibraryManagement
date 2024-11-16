@@ -11,12 +11,13 @@ import {sendResetPasswordEmail, sendResetPasswordSuccessEmail} from "../utils/se
 import {AuthenticatedRequest} from "../utils/authenticateRequest";
 import {isValidObjectId} from "../utils/validObject";
 import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
+import prisma from "../config/prisma";
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
   const user: Omit<TaiKhoan, "id" | "createAt" | "updateAt" | "deleted"> & {
     HoTen: string;
     DiaChi: string;
-    SoDienThoai: string;
+    DienThoai: string;
     ChucVu?: string;
   } = req.body;
   try {
@@ -29,18 +30,25 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
     }
 
     const newAccount = await TaiKhoanService.createTaiKhoan({
-      username: user.username,
+      username: user.username.toLowerCase(),
       password: user.password,
       email: user.email,
       role: Role.DOCGIA,
     });
+    let newUser = undefined;
+    try {
+      newUser = await DocGiaService.createDocgia({
+        HoTen: user.HoTen,
+        DiaChi: user.DiaChi,
+        DienThoai: user.DienThoai,
+        taiKhoanId: newAccount.id,
+      });
+    } catch (error) {
+      console.log(error);
+      if (newUser) await TaiKhoanService.deleteAccount(newAccount.id);
 
-    const newUser = await DocGiaService.createDocgia({
-      HoTen: user.HoTen,
-      DiaChi: user.DiaChi,
-      SoDienThoai: user.SoDienThoai,
-      taiKhoanId: newAccount.id,
-    });
+      sendResponse(res, 400, "Thông tin người dùng không hợp lệ");
+    }
 
     //jwt
     generateTokenAndSetCookies(res, newAccount);
@@ -62,7 +70,7 @@ export const adminSignup = async (req: Request, res: Response, next: NextFunctio
   } = req.body;
   try {
     const existAccount = await TaiKhoanService.getTaiKhoanByUserNameOrEmail(
-      user.username,
+      user.username.toLowerCase(),
       user.email
     );
     if (existAccount) {
@@ -70,7 +78,7 @@ export const adminSignup = async (req: Request, res: Response, next: NextFunctio
     }
 
     const newAccount = await TaiKhoanService.createTaiKhoan({
-      username: user.username,
+      username: user.username.toLowerCase(),
       password: user.password,
       email: user.email,
       role: Role.NHANVIEN,
@@ -92,10 +100,48 @@ export const adminSignup = async (req: Request, res: Response, next: NextFunctio
   }
 };
 
+export const adminCreateUser = async (req: Request, res: Response, next: NextFunction) => {
+  const user: Omit<TaiKhoan, "id" | "createAt" | "updateAt" | "deleted"> & {
+    HoTen: string;
+    DiaChi: string;
+    DienThoai: string;
+    ChucVu?: string;
+  } = req.body;
+  try {
+    const existAccount = await TaiKhoanService.getTaiKhoanByUserNameOrEmail(
+      user.username,
+      user.email
+    );
+    if (existAccount) {
+      return sendResponse(res, 400, "Tài khoản hoặc mật khẩu đã tồn tại");
+    }
+
+    const newAccount = await TaiKhoanService.createTaiKhoan({
+      username: user.username.toLowerCase(),
+      password: user.password,
+      email: user.email,
+      role: Role.DOCGIA,
+    });
+
+    const newUser = await DocGiaService.createDocgia({
+      HoTen: user.HoTen,
+      DiaChi: user.DiaChi,
+      DienThoai: user.DienThoai,
+      taiKhoanId: newAccount.id,
+    });
+
+    const {password, ...noPasswordUser} = newAccount;
+
+    sendResponse(res, 201, "Tạo thành công", noPasswordUser);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const login = async (req: Request, res: Response, next: NextFunction) => {
   const {username, password} = req.body;
   try {
-    const user = await TaiKhoanService.login(username, password);
+    const user = await TaiKhoanService.login(username.toLowerCase(), password);
     if (!user) {
       return sendResponse(res, 400, "Tài khoản hoặc mật khẩu không đúng");
     }

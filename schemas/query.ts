@@ -20,7 +20,7 @@ export const createQuerySchema = (allowedFields: readonly string[]) => {
       .transform(Number),
     sortBy: z.enum(allowedFields as [string, ...string[]]).default(allowedFields[0]),
     sortOrder: z.enum(["asc", "desc"]).default("asc"),
-    search: z.string().optional(),
+    search: z.union([z.string(), z.array(z.string())]).optional(),
     searchBy: z.enum(allowedFields as [string, ...string[]]).optional(),
     filter: z.string().optional(),
     filterBy: z.enum(allowedFields as [string, ...string[]]).optional(),

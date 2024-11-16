@@ -14,17 +14,19 @@ import {authenticateToken} from "../middlewares/authMiddleware";
 
 const router = Router();
 
-router.get("/", authenticateToken, checkRole([Role.ADMIN, Role.NHANVIEN]), getAllDocGia);
+// router.get("/", authenticateToken, checkRole([Role.ADMIN, Role.NHANVIEN]), getAllDocGia);
+router.get("/", getAllDocGia);
 
 router.get("/:id", getDocGiaById);
 router.post("/", checkRole([Role.ADMIN, Role.NHANVIEN]), validate(DocGiaSchema), createDocGia);
 
 router.put(
   "/:id",
+  authenticateToken,
   checkRole([Role.ADMIN, Role.NHANVIEN]),
   validate(DocGiaSchema.partial()),
   updateDocgia
 ); // Partial validate only the fields that are being updated.
-router.patch("/:id", checkRole([Role.ADMIN, Role.NHANVIEN]), deleteDocGia);
+router.patch("/:id", authenticateToken, checkRole([Role.ADMIN, Role.NHANVIEN]), deleteDocGia);
 
 export {router as docGiaRouter};
