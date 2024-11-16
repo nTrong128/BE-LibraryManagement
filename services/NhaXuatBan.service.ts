@@ -7,7 +7,7 @@ export const getAllNhaXuatBan = async (
   page?: number | null,
   sortBy: string = "MaNXB",
   sortOrder: "asc" | "desc" = "asc",
-  search?: string | string[] | null,
+  search?: string | null,
   searchBy?: string | null
 ) => {
   let whereClause: any = {

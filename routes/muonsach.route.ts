@@ -7,6 +7,7 @@ import {
   getMuonSachhByDocGiaId,
   updateMuonSach,
   getMuonSachhBySachId,
+  yeuCauTraSach,
   adminUpdateMuonSach,
 } from "../controllers/MuonSach.controller";
 import {validate} from "../middlewares/validate";
@@ -30,6 +31,9 @@ router.patch(
   validate(MuonSachSchema.partial()),
   adminUpdateMuonSach
 );
+
+router.post("/:id/request-return", authenticateToken, yeuCauTraSach);
+
 router.patch("/:id", validate(MuonSachSchema.partial()), updateMuonSach);
 router.delete("/:id", deleteMuonSach);
 

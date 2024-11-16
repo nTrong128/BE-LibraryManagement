@@ -9,7 +9,7 @@ export const MuonSachSchema = z.object({
   NgayTra: z.coerce.date().optional(),
   NgayYeuCau: z.coerce.date().optional(),
   NgayXacNhan: z.coerce.date().optional(),
-  status: z.enum(["PENDING", "ACCEPTED", "REJECTED", "BORROWED", "RETURNED"]).optional(),
+  status: z.enum(["PENDING", "ACCEPTED", "REJECTED", "BORROWED", "RETURNED", "OVERDUE"]).optional(),
 });
 
 export type MuonSach = z.infer<typeof MuonSachSchema>;

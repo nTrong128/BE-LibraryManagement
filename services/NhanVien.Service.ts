@@ -7,7 +7,7 @@ export const getAllNhanVien = async (
   page?: number | null,
   sortBy: string = "MSNV",
   sortOrder: "asc" | "desc" = "asc",
-  search?: string | string[] | null,
+  search?: string | null,
   searchBy?: string | null
 ) => {
   let whereClause: any = {

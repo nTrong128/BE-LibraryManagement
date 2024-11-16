@@ -7,7 +7,7 @@ export const getAllDocgia = async (
   page?: number | null,
   sortBy: string = "MaDocGia",
   sortOrder: "asc" | "desc" = "asc",
-  search?: string | string[] | null,
+  search?: string | null,
   searchBy?: string | null
 ) => {
   let whereClause: any = {
@@ -92,11 +92,14 @@ export const getAllDocgia = async (
 };
 
 // Find Docgia by ID
-export const getDocgiaById = async (id: string): Promise<Docgia | null> => {
+export const getDocgiaById = async (id: string) => {
   return prisma.docgia.findUnique({
     where: {
       MaDocGia: id,
       deleted: false,
+    },
+    include: {
+      TaiKhoan: true,
     },
   });
 };

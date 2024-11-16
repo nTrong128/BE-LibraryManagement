@@ -129,4 +129,5 @@ enum BorrowStatus {
     REJECTED // Request has been rejected by the librarian
     BORROWED // Book is currently borrowed by the user
     RETURNED // Book has been returned
+    OVERDUE // Book is overdue
 }

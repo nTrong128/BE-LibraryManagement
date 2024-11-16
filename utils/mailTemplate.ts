@@ -61,3 +61,29 @@ export const PASSWORD_RESET_REQUEST_TEMPLATE = `
   </body>
 </html>
 `;
+
+export const REQUEST_RETURN_BOOK = `
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quá hạn trả sách</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(to right, #db4141, #d63f30); padding: 20px; text-align: center;">
+      <h1 style="color: white; margin: 0;">Quá  hạn trả sách</h1>
+    </div>
+    <div style="background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+      <p>Xin chào, {HoTen}</p>
+      <p>Chúng tôi nhận thấy bạn vẫn chưa trả sách {TenSach} khi đã quá hạn {NgayTra}. Xin mời {HoTen} vui lòng mang sách đến chi nhánh gần nhất của thư viện để hoàn trả sách theo yêu cầu của chúng tôi. Nếu không tài khoản của bạn sẽ bị khóa và sẽ bị cấm vĩnh viễn khỏi thư viện và áp dụng các chế tài đặc biệt để cưỡng bức hoàn trả sách.</p>
+
+
+      <p>Trân trọng, <br>Lê Nhật Trọng - B2106819 </p>
+    </div>
+    <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
+      <p>Đây là tin nhắn tự động, vui lòng không phản hồi vào email này.</p>
+    </div>
+  </body>
+</html>
+`;

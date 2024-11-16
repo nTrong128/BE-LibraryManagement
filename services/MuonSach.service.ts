@@ -7,7 +7,7 @@ export const getAllMuonSach = async (
   page?: number | null,
   sortBy: string = "MaMuon",
   sortOrder: "asc" | "desc" = "asc",
-  search?: string | string[] | null,
+  search?: string | null,
   searchBy?: string | null
 ) => {
   let whereClause: any = {
@@ -17,12 +17,13 @@ export const getAllMuonSach = async (
   if (searchBy && search) {
     if (searchBy === "TenSach") {
       whereClause.Sach = {TenSach: {contains: search, mode: "insensitive"}}; // Case-insensitive search on TenSach
-    }
-    if (searchBy === "status") {
-      const statusList: BorrowStatus[] = Array.isArray(search)
-        ? (search as BorrowStatus[])
-        : ((search as string).split(",").map((s) => s.trim().toUpperCase()) as BorrowStatus[]);
-      whereClause.status = {in: statusList};
+    } else if (searchBy === "status") {
+      if (search === "OVERDUE") {
+        whereClause.NgayTra = {lt: new Date()};
+        whereClause.status = BorrowStatus.BORROWED;
+      } else {
+        whereClause.status = {contains: search, mode: "insensitive"}; // Case-insensitive search
+      }
     } else whereClause[searchBy] = {contains: search, mode: "insensitive"}; // Case-insensitive search
   }
   let orderByClause: any = {};
@@ -65,6 +66,15 @@ export const getAllMuonSach = async (
 
     totalItems = itemList.length;
   }
+  itemList.forEach((item) => {
+    if (item.NgayTra) {
+      const date = new Date(item.NgayTra);
+      const currentDate = new Date();
+      if (date < currentDate) {
+        item.status = BorrowStatus.OVERDUE;
+      }
+    }
+  });
 
   return {itemList, totalItems};
 };
@@ -117,12 +127,13 @@ export const getMuonSachByDocGiaId = async (
   if (searchBy && search) {
     if (searchBy === "TenSach") {
       whereClause.Sach = {TenSach: {contains: search, mode: "insensitive"}}; // Case-insensitive search on TenSach
-    }
-    if (searchBy === "status") {
-      const statusList: BorrowStatus[] = Array.isArray(search)
-        ? (search as BorrowStatus[])
-        : ((search as string).split(",").map((s) => s.trim().toUpperCase()) as BorrowStatus[]);
-      whereClause.status = {in: statusList};
+    } else if (searchBy === "status") {
+      if (search === "OVERDUE") {
+        whereClause.NgayTra = {lt: new Date()};
+        whereClause.status = BorrowStatus.BORROWED;
+      } else {
+        whereClause.status = {contains: search, mode: "insensitive"}; // Case-insensitive search
+      }
     } else whereClause[searchBy] = {contains: search, mode: "insensitive"}; // Case-insensitive search
   }
   let orderByClause: any = {};
@@ -166,6 +177,16 @@ export const getMuonSachByDocGiaId = async (
 
     totalItems = itemList.length;
   }
+
+  itemList.forEach((item) => {
+    if (item.NgayTra) {
+      const date = new Date(item.NgayTra);
+      const currentDate = new Date();
+      if (date < currentDate) {
+        item.status = BorrowStatus.OVERDUE;
+      }
+    }
+  });
 
   return {itemList, totalItems};
 };
