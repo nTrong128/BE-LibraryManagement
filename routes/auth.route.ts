@@ -51,7 +51,7 @@ router.post(
 
 // Đổi mật khẩu
 router.post(
-  "/change-password",
+  "/change-password/:id",
   authenticateToken,
   validate(ChangePasswordSchema.strict()),
   changePassword
@@ -70,7 +70,11 @@ router.post("/signup", validate(TaiKhoanSchema.strict()), signup);
 
 router.post("/logout", authenticateToken, logout);
 
-router.post("/login", validate(TaiKhoanSchema.pick({username: true, password: true})), login);
+router.post(
+  "/login",
+  validate(TaiKhoanSchema.pick({username: true, password: true})),
+  login
+);
 
 router.post("/forgot-password", forgotPassword);
 

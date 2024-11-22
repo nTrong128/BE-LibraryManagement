@@ -20,7 +20,10 @@ export const getAllSach = async (
         TenNXB: {contains: search, mode: "insensitive"}, // Case-insensitive search on TenNXB
       };
     } else {
-      whereClause[searchBy] = {contains: search, mode: "insensitive"}; // Case-insensitive search on other fields
+      whereClause[searchBy] = {
+        contains: search,
+        mode: "insensitive",
+      }; // Case-insensitive search on other fields
     }
   }
 
@@ -28,7 +31,9 @@ export const getAllSach = async (
   let totalItems;
 
   const orderByClause =
-    sortBy === "TenNXB" ? {NhaXuatBan: {TenNXB: sortOrder}} : {[sortBy]: sortOrder};
+    sortBy === "TenNXB"
+      ? {NhaXuatBan: {TenNXB: sortOrder}}
+      : {[sortBy]: sortOrder};
 
   if (page) {
     const skip = (page - 1) * pageSize;
@@ -81,7 +86,10 @@ export const createSach = async (
 };
 
 // Update Sach by ID
-export const updateSachById = async (id: string, data: Partial<Sach>): Promise<Sach> => {
+export const updateSachById = async (
+  id: string,
+  data: Partial<Sach>
+): Promise<Sach> => {
   return prisma.sach.update({
     where: {MaSach: id},
     data,
@@ -94,4 +102,19 @@ export const softDeleteSachById = async (id: string): Promise<Sach> => {
     where: {MaSach: id},
     data: {deleted: true},
   });
+};
+
+export const getRandomItems = async (count: number = 3) => {
+  // Ensure count is a positive integer
+  const validCount = Math.max(1, count);
+
+  // Execute the aggregation pipeline with $sample to fetch random books
+  const randomBooks = await prisma.sach.aggregateRaw({
+    pipeline: [{$match: {deleted: false}}, {$sample: {size: validCount}}],
+  });
+
+  // Since aggregateRaw returns raw data, ensure it aligns with the Sach type
+  // Optionally, you can map or validate the data here if necessary
+
+  return randomBooks;
 };

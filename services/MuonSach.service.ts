@@ -45,7 +45,16 @@ export const getAllMuonSach = async (
       where: whereClause, // Apply both the filter and the `deleted: false` condition
       include: {
         NhanVien: true,
-        Docgia: true,
+        Docgia: {
+          include: {
+            TaiKhoan: {
+              select: {
+                username: true,
+                email: true,
+              },
+            },
+          },
+        },
         Sach: true,
       },
     });
@@ -59,7 +68,16 @@ export const getAllMuonSach = async (
       where: whereClause,
       include: {
         NhanVien: true,
-        Docgia: true,
+        Docgia: {
+          include: {
+            TaiKhoan: {
+              select: {
+                username: true,
+                email: true,
+              },
+            },
+          },
+        },
         Sach: true,
       },
     });
@@ -70,7 +88,7 @@ export const getAllMuonSach = async (
     if (item.NgayTra) {
       const date = new Date(item.NgayTra);
       const currentDate = new Date();
-      if (date < currentDate) {
+      if (date < currentDate && item.status === BorrowStatus.BORROWED) {
         item.status = BorrowStatus.OVERDUE;
       }
     }
@@ -88,7 +106,16 @@ export const getMuonSachById = async (id: string) => {
     },
     include: {
       NhanVien: true,
-      Docgia: true,
+      Docgia: {
+        include: {
+          TaiKhoan: {
+            select: {
+              username: true,
+              email: true,
+            },
+          },
+        },
+      },
       Sach: true,
     },
   });
@@ -103,7 +130,16 @@ export const getMuonSachBySachId = async (id: string) => {
     },
     include: {
       NhanVien: true,
-      Docgia: true,
+      Docgia: {
+        include: {
+          TaiKhoan: {
+            select: {
+              username: true,
+              email: true,
+            },
+          },
+        },
+      },
       Sach: true,
     },
   });
@@ -156,7 +192,16 @@ export const getMuonSachByDocGiaId = async (
       where: whereClause, // Apply both the filter and the `deleted: false` condition
       include: {
         NhanVien: true,
-        Docgia: true,
+        Docgia: {
+          include: {
+            TaiKhoan: {
+              select: {
+                username: true,
+                email: true,
+              },
+            },
+          },
+        },
         Sach: true,
       },
     });
@@ -170,7 +215,16 @@ export const getMuonSachByDocGiaId = async (
       where: whereClause,
       include: {
         NhanVien: true,
-        Docgia: true,
+        Docgia: {
+          include: {
+            TaiKhoan: {
+              select: {
+                username: true,
+                email: true,
+              },
+            },
+          },
+        },
         Sach: true,
       },
     });
@@ -182,7 +236,7 @@ export const getMuonSachByDocGiaId = async (
     if (item.NgayTra) {
       const date = new Date(item.NgayTra);
       const currentDate = new Date();
-      if (date < currentDate) {
+      if (date < currentDate && item.status === BorrowStatus.BORROWED) {
         item.status = BorrowStatus.OVERDUE;
       }
     }
@@ -199,32 +253,119 @@ export const createMuonSach = async (
     data,
     include: {
       NhanVien: true,
-      Docgia: true,
+      Docgia: {
+        include: {
+          TaiKhoan: {
+            select: {
+              username: true,
+              email: true,
+            },
+          },
+        },
+      },
       Sach: true,
     },
   });
 };
 
 // Update MuonSach by ID
-export const updateMuonSachById = async (id: string, data: Partial<MuonSach>) => {
-  if (data.status === BorrowStatus.ACCEPTED) {
-    data.NgayXacNhan = new Date();
-  }
-  if (data.status === BorrowStatus.REJECTED) {
-    data.hoanThanh = new Date();
-  }
-  if (data.status === BorrowStatus.RETURNED) {
-    data.hoanThanh = new Date();
-  }
+// export const updateMuonSachById = async (id: string, data: Partial<MuonSach>) => {
+//   if (data.status === BorrowStatus.ACCEPTED) {
 
-  return prisma.muonSach.update({
-    where: {MaMuon: id},
-    data,
-    include: {
-      NhanVien: true,
-      Docgia: true,
-      Sach: true,
-    },
+//     data.NgayXacNhan = new Date();
+//   }
+//   if (data.status === BorrowStatus.REJECTED) {
+//     data.hoanThanh = new Date();
+//   }
+//   if (data.status === BorrowStatus.RETURNED) {
+//     data.hoanThanh = new Date();
+//   }
+
+//   return prisma.muonSach.update({
+//     where: {MaMuon: id},
+//     data,
+//     include: {
+//       NhanVien: true,
+//       Docgia: true,
+//       Sach: true,
+//     },
+//   });
+// };
+
+// Update MuonSach by ID
+export const updateMuonSachById = async (id: string, data: Partial<MuonSach>) => {
+  return prisma.$transaction(async (tx) => {
+    // Fetch the existing MuonSach record along with related Sach
+    const existingMuonSach = await tx.muonSach.findUnique({
+      where: {MaMuon: id},
+      include: {Sach: true},
+    });
+
+    if (!existingMuonSach) {
+      throw new Error("MuonSach not found");
+    }
+
+    // Initialize variables to track SoQuyen changes
+    let soQuyenChange = 0;
+
+    // Handle status updates
+    if (data.status) {
+      switch (data.status) {
+        case BorrowStatus.ACCEPTED:
+          // Ensure there are available copies to borrow
+          if (existingMuonSach.Sach.SoQuyen <= 0) {
+            throw new Error("No available copies to borrow.");
+          }
+          soQuyenChange = -1; // Decrease SoQuyen by 1
+          data.NgayXacNhan = new Date();
+          break;
+
+        case BorrowStatus.RETURNED:
+          soQuyenChange = 1; // Increase SoQuyen by 1
+          data.NgayTra = new Date();
+          data.hoanThanh = new Date();
+          break;
+
+        default:
+          // No change to SoQuyen for other statuses
+          break;
+      }
+    }
+
+    // If there's a change in SoQuyen, update Sach accordingly
+    if (soQuyenChange !== 0) {
+      await tx.sach.update({
+        where: {MaSach: existingMuonSach.MaSach},
+        data: {
+          SoQuyen: {
+            increment: soQuyenChange > 0 ? soQuyenChange : undefined,
+            decrement: soQuyenChange < 0 ? Math.abs(soQuyenChange) : undefined,
+          },
+        },
+      });
+    }
+
+    // Perform the MuonSach update
+    const updatedMuonSach = await tx.muonSach.update({
+      where: {MaMuon: id},
+      data,
+      include: {
+        NhanVien: true,
+        Docgia: {
+          include: {
+            TaiKhoan: {
+              select: {
+                username: true,
+                email: true,
+              },
+            },
+          },
+        },
+        Sach: true,
+      },
+    });
+
+    return updatedMuonSach;
   });
 };
 
@@ -235,7 +376,16 @@ export const softDeleteMuonSachById = async (id: string) => {
     data: {deleted: true},
     include: {
       NhanVien: true,
-      Docgia: true,
+      Docgia: {
+        include: {
+          TaiKhoan: {
+            select: {
+              username: true,
+              email: true,
+            },
+          },
+        },
+      },
       Sach: true,
     },
   });
@@ -253,7 +403,16 @@ export const getMuonSachByDocGiaIdAndSachId = async (docGiaId: string, sachId: s
     },
     include: {
       NhanVien: true,
-      Docgia: true,
+      Docgia: {
+        include: {
+          TaiKhoan: {
+            select: {
+              username: true,
+              email: true,
+            },
+          },
+        },
+      },
       Sach: true,
     },
   });

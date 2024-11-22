@@ -1,4 +1,8 @@
-import type {Request, Response, NextFunction} from "express";
+import type {
+  Request,
+  Response,
+  NextFunction,
+} from "express";
 import * as SachService from "../services/sach.service";
 import {Sach} from "@prisma/client";
 import {isValidObjectId} from "../utils/validObject";
@@ -8,7 +12,11 @@ import {createQuerySchema} from "../schemas/query";
 import {z} from "zod";
 
 // Get all Sach
-export const getAllSach = async (req: Request, res: Response, next: NextFunction) => {
+export const getAllSach = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const sachFields = z.enum([
     "MaSach",
     "TenSach",
@@ -23,8 +31,12 @@ export const getAllSach = async (req: Request, res: Response, next: NextFunction
     "deleted",
   ]);
 
-  const sachQuerySchema = createQuerySchema(sachFields.options);
-  const {success, data, error} = sachQuerySchema.safeParse(req.query);
+  const sachQuerySchema = createQuerySchema(
+    sachFields.options
+  );
+  const {success, data, error} = sachQuerySchema.safeParse(
+    req.query
+  );
 
   if (!success) {
     return sendResponse(
@@ -35,16 +47,24 @@ export const getAllSach = async (req: Request, res: Response, next: NextFunction
     );
   }
 
-  const {page, pageSize, sortBy, sortOrder, search, searchBy} = data;
+  const {
+    page,
+    pageSize,
+    sortBy,
+    sortOrder,
+    search,
+    searchBy,
+  } = data;
   try {
-    const {itemList, totalItems} = await SachService.getAllSach(
-      pageSize,
-      page,
-      sortBy,
-      sortOrder,
-      search,
-      searchBy
-    );
+    const {itemList, totalItems} =
+      await SachService.getAllSach(
+        pageSize,
+        page,
+        sortBy,
+        sortOrder,
+        search,
+        searchBy
+      );
 
     if (page) {
       const totalPages = Math.ceil(totalItems / pageSize);
@@ -57,22 +77,39 @@ export const getAllSach = async (req: Request, res: Response, next: NextFunction
         sortOrder,
       };
 
-      return sendResponse(res, 200, `Retrieved Sach at page ${page}`, itemList, meta);
+      return sendResponse(
+        res,
+        200,
+        `Retrieved Sach at page ${page}`,
+        itemList,
+        meta
+      );
     } else {
-      return sendResponse(res, 200, "Retrieved all Sach", itemList);
+      return sendResponse(
+        res,
+        200,
+        "Retrieved all Sach",
+        itemList
+      );
     }
   } catch (error) {
     next(error);
   }
 };
 // Get Sach by ID
-export const getSachById = async (req: Request, res: Response, next: NextFunction) => {
+export const getSachById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const {id} = req.params;
   if (!isValidObjectId(id)) {
     return sendResponse(res, 400, "Invalid Sach ID");
   }
   try {
-    const Sach: Sach | null = await SachService.getSachById(id);
+    const Sach: Sach | null = await SachService.getSachById(
+      id
+    );
 
     if (!Sach) {
       return sendResponse(res, 404, "Sach not found");
@@ -85,15 +122,28 @@ export const getSachById = async (req: Request, res: Response, next: NextFunctio
 };
 
 // Create new Sach
-export const createSach = async (req: Request, res: Response, next: NextFunction) => {
+export const createSach = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const SachData: Omit<Sach, "MaSach" | "createAt" | "updateAt" | "deleted"> = req.body;
+    const SachData: Omit<
+      Sach,
+      "MaSach" | "createAt" | "updateAt" | "deleted"
+    > = req.body;
 
     if (!isValidObjectId(SachData.MaNXB)) {
-      return sendResponse(res, 400, "Invalid NhaXuatBan ID");
+      return sendResponse(
+        res,
+        400,
+        "Invalid NhaXuatBan ID"
+      );
     }
 
-    const newSach: Sach = await SachService.createSach(SachData);
+    const newSach: Sach = await SachService.createSach(
+      SachData
+    );
     return sendResponse(res, 201, "Sach created", newSach);
   } catch (error) {
     next(error);
@@ -101,7 +151,11 @@ export const createSach = async (req: Request, res: Response, next: NextFunction
 };
 
 // Update Sach by ID
-export const updateSach = async (req: Request, res: Response, next: NextFunction) => {
+export const updateSach = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const {id} = req.params;
   if (!isValidObjectId(id)) {
     return sendResponse(res, 400, "Invalid Sach ID");
@@ -109,15 +163,31 @@ export const updateSach = async (req: Request, res: Response, next: NextFunction
 
   try {
     const SachData: Partial<Sach> = req.body;
-    if (SachData.MaNXB && !isValidObjectId(SachData.MaNXB)) {
-      return sendResponse(res, 400, "Invalid NhaXuatBan ID");
+    if (
+      SachData.MaNXB &&
+      !isValidObjectId(SachData.MaNXB)
+    ) {
+      return sendResponse(
+        res,
+        400,
+        "Invalid NhaXuatBan ID"
+      );
     }
 
-    const updatedSach: Sach | null = await SachService.updateSachById(id, SachData);
+    const updatedSach: Sach | null =
+      await SachService.updateSachById(id, SachData);
 
-    return sendResponse(res, 200, "Sach updated", updatedSach);
+    return sendResponse(
+      res,
+      200,
+      "Sach updated",
+      updatedSach
+    );
   } catch (error) {
-    if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
+    if (
+      error instanceof PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
       return sendResponse(res, 404, "Sach not found");
     }
     next(error);
@@ -125,7 +195,11 @@ export const updateSach = async (req: Request, res: Response, next: NextFunction
 };
 
 // Soft delete Sach by ID
-export const deleteSach = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteSach = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const {id} = req.params;
   if (!isValidObjectId(id)) {
     return sendResponse(res, 400, "Invalid Sach ID");
@@ -140,9 +214,43 @@ export const deleteSach = async (req: Request, res: Response, next: NextFunction
 
     return sendResponse(res, 204);
   } catch (error) {
-    if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
+    if (
+      error instanceof PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
       return sendResponse(res, 404, "Sach not found");
     }
     next(error);
+  }
+};
+
+export const getThreeRandomBooksHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const randomBooks = await SachService.getRandomItems(4); // Fetch 3 random books
+
+    // Check if books were found
+    if (randomBooks.length === 0) {
+      return sendResponse(res, 404, "No books found.");
+    }
+
+    // Send the response with the random books
+    return sendResponse(
+      res,
+      200,
+      "Random books fetched successfully.",
+      randomBooks
+    );
+  } catch (error) {
+    // Handle unexpected errors
+    console.error("Error fetching random books:", error);
+    return sendResponse(
+      res,
+      500,
+      "An error occurred while fetching random books."
+    );
   }
 };
