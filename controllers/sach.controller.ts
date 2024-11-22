@@ -1,8 +1,4 @@
-import type {
-  Request,
-  Response,
-  NextFunction,
-} from "express";
+import type {Request, Response, NextFunction} from "express";
 import * as SachService from "../services/sach.service";
 import {Sach} from "@prisma/client";
 import {isValidObjectId} from "../utils/validObject";
@@ -31,12 +27,8 @@ export const getAllSach = async (
     "deleted",
   ]);
 
-  const sachQuerySchema = createQuerySchema(
-    sachFields.options
-  );
-  const {success, data, error} = sachQuerySchema.safeParse(
-    req.query
-  );
+  const sachQuerySchema = createQuerySchema(sachFields.options);
+  const {success, data, error} = sachQuerySchema.safeParse(req.query);
 
   if (!success) {
     return sendResponse(
@@ -47,24 +39,16 @@ export const getAllSach = async (
     );
   }
 
-  const {
-    page,
-    pageSize,
-    sortBy,
-    sortOrder,
-    search,
-    searchBy,
-  } = data;
+  const {page, pageSize, sortBy, sortOrder, search, searchBy} = data;
   try {
-    const {itemList, totalItems} =
-      await SachService.getAllSach(
-        pageSize,
-        page,
-        sortBy,
-        sortOrder,
-        search,
-        searchBy
-      );
+    const {itemList, totalItems} = await SachService.getAllSach(
+      pageSize,
+      page,
+      sortBy,
+      sortOrder,
+      search,
+      searchBy
+    );
 
     if (page) {
       const totalPages = Math.ceil(totalItems / pageSize);
@@ -85,12 +69,7 @@ export const getAllSach = async (
         meta
       );
     } else {
-      return sendResponse(
-        res,
-        200,
-        "Retrieved all Sach",
-        itemList
-      );
+      return sendResponse(res, 200, "Retrieved all Sach", itemList);
     }
   } catch (error) {
     next(error);
@@ -107,9 +86,7 @@ export const getSachById = async (
     return sendResponse(res, 400, "Invalid Sach ID");
   }
   try {
-    const Sach: Sach | null = await SachService.getSachById(
-      id
-    );
+    const Sach: Sach | null = await SachService.getSachById(id);
 
     if (!Sach) {
       return sendResponse(res, 404, "Sach not found");
@@ -128,22 +105,14 @@ export const createSach = async (
   next: NextFunction
 ) => {
   try {
-    const SachData: Omit<
-      Sach,
-      "MaSach" | "createAt" | "updateAt" | "deleted"
-    > = req.body;
+    const SachData: Omit<Sach, "MaSach" | "createAt" | "updateAt" | "deleted"> =
+      req.body;
 
     if (!isValidObjectId(SachData.MaNXB)) {
-      return sendResponse(
-        res,
-        400,
-        "Invalid NhaXuatBan ID"
-      );
+      return sendResponse(res, 400, "Invalid NhaXuatBan ID");
     }
 
-    const newSach: Sach = await SachService.createSach(
-      SachData
-    );
+    const newSach: Sach = await SachService.createSach(SachData);
     return sendResponse(res, 201, "Sach created", newSach);
   } catch (error) {
     next(error);
@@ -163,26 +132,16 @@ export const updateSach = async (
 
   try {
     const SachData: Partial<Sach> = req.body;
-    if (
-      SachData.MaNXB &&
-      !isValidObjectId(SachData.MaNXB)
-    ) {
-      return sendResponse(
-        res,
-        400,
-        "Invalid NhaXuatBan ID"
-      );
+    if (SachData.MaNXB && !isValidObjectId(SachData.MaNXB)) {
+      return sendResponse(res, 400, "Invalid NhaXuatBan ID");
     }
 
-    const updatedSach: Sach | null =
-      await SachService.updateSachById(id, SachData);
-
-    return sendResponse(
-      res,
-      200,
-      "Sach updated",
-      updatedSach
+    const updatedSach: Sach | null = await SachService.updateSachById(
+      id,
+      SachData
     );
+
+    return sendResponse(res, 200, "Sach updated", updatedSach);
   } catch (error) {
     if (
       error instanceof PrismaClientKnownRequestError &&
